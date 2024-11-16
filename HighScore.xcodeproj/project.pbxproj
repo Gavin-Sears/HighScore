@@ -13,6 +13,7 @@
 		05CB98D82CE815F500EF1872 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 05CB98D72CE815F500EF1872 /* Base */; };
 		05CB98DA2CE815F600EF1872 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 05CB98D92CE815F600EF1872 /* Assets.xcassets */; };
 		05CB98DD2CE815F600EF1872 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 05CB98DC2CE815F600EF1872 /* Base */; };
+		05FFE05B2CE81CB000DDAF65 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FFE05A2CE81CB000DDAF65 /* GameViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		05CB98D92CE815F600EF1872 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		05CB98DC2CE815F600EF1872 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		05CB98DE2CE815F600EF1872 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		05FFE05A2CE81CB000DDAF65 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +60,7 @@
 			children = (
 				05CB98D02CE815F500EF1872 /* AppDelegate.swift */,
 				05CB98D22CE815F500EF1872 /* SceneDelegate.swift */,
+				05FFE05A2CE81CB000DDAF65 /* GameViewController.swift */,
 				05CB98D42CE815F500EF1872 /* ViewController.swift */,
 				05CB98D62CE815F500EF1872 /* Main.storyboard */,
 				05CB98D92CE815F600EF1872 /* Assets.xcassets */,
@@ -138,6 +141,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05FFE05B2CE81CB000DDAF65 /* GameViewController.swift in Sources */,
 				05CB98D52CE815F500EF1872 /* ViewController.swift in Sources */,
 				05CB98D12CE815F500EF1872 /* AppDelegate.swift in Sources */,
 				05CB98D32CE815F500EF1872 /* SceneDelegate.swift in Sources */,
