@@ -42,6 +42,12 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     public var win: Bool = false
     public var lose: Bool = false
     
+    public var mat: SCNMaterial = SCNMaterial()
+    public var modelMat: SCNMatrix4 = SCNMatrix4()
+    public var inverseModelMat: SCNMatrix4 = SCNMatrix4()
+    public var planeNode: SCNNode = SCNNode()
+    public var globeNode: SCNNode = SCNNode()
+    
     // Beginning functions
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -58,8 +64,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         gameView.delegate = self
         gameView.isPlaying = true
         gameView.loops = true // if render loop stops again
-        // gameView.rendersContinuously // change if issues
-        // gameView.allowsCameraControl = true
+        gameView.rendersContinuously = true // change if issues
+        gameView.allowsCameraControl = true
         // gameView.showsStatistics = true
         gameView.backgroundColor = UIColor.black
         
@@ -77,6 +83,34 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         gameView.scene = self.gameScene
     }
     
+    func setupLights()
+    {
+        // create and add a light to the scene
+        let lightNode = SCNNode()
+        lightNode.light = SCNLight()
+        lightNode.light!.type = .spot
+        lightNode.light!.spotOuterAngle = 120.0
+        lightNode.light!.intensity = 1500
+        lightNode.position = SCNVector3(x: -14, y: 20, z: -20)
+        lightNode.look(at: SCNVector3(x: 6.5, y: 0, z: -6.5))
+        lightNode.light!.castsShadow = true
+        lightNode.light!.shadowMapSize = CGSize(width:2048, height:2048)
+        lightNode.light!.shadowMode = .forward
+        lightNode.light!.shadowSampleCount = 128 * 2
+        lightNode.light!.shadowRadius = 2
+        lightNode.light!.shadowBias = 32 * 2
+        self.gameScene.rootNode.addChildNode(lightNode)
+        
+        // create and add an ambient light to the scene
+        let ambientLightNode = SCNNode()
+        ambientLightNode.light = SCNLight()
+        ambientLightNode.light!.type = .ambient
+        ambientLightNode.light!.color = UIColor.white
+        ambientLightNode.light!.intensity = 800
+        self.gameScene.rootNode.addChildNode(ambientLightNode)
+        
+    }
+    
     // MOST IMPORTANT METHOD
     /// Populating game scene and UI scene with nodes
     func setupNodes()
@@ -85,7 +119,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         
         self.gameScene = SCNScene()
         
-        setupCubes()
+        setupObjects()
+        setupLights()
         
         self.gameScene.rootNode.addChildNode(self.cameraNode)
     }
@@ -100,19 +135,62 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         
         // place the camera
         self.cameraNode.position = self.camPos
+        globeNode.position = self.camPos
         self.cameraNode.eulerAngles = SCNVector3(x: -(.pi / 3), y: .pi, z: 0)
     }
     
-    func setupCubes()
+    func setupObjects()
     {
-        let cubeNode = SCNNode()
-        cubeNode.position = SCNVector3(1.0, 1.0, 1.0)
-        let mat = SCNMaterial()
-        mat.diffuse.contents = UIColor(named: "blue")
-        cubeNode.geometry = SCNBox()
-        cubeNode.geometry?.materials = [mat]
+        let planeNode = SCNNode()
+        planeNode.position = SCNVector3(6.5, 1.0, -15.0)
+        planeNode.scale = SCNVector3(5.0, 5.0, 5.0)
+        planeNode.eulerAngles = SCNVector3(Double.pi, 0.0, 0.0)
+        mat = SCNMaterial()
+        mat.diffuse.contents = UIColor.green
         
-        self.gameScene.rootNode.addChildNode(cubeNode)
+        let distortionShaderModifier =
+            "uniform float amplitude = 0.2; \n" +
+            "vec2 sincos(float t) { return vec2(sin(t), cos(t)); } \n" +
+            "#pragma transparent \n" +
+            "#pragma body \n" +
+            "_geometry.position.z += amplitude * sin(u_time * _geometry.position.x);"
+        
+        // 0.015-0.005
+        let globeShaderModifier =
+            "uniform mat4 modelMat; \n" +
+            "uniform mat4 inverseModelMat; \n" +
+            "uniform float amount; \n" +
+            "uniform vec3 camPos; \n" +
+            "vec4 worldPos = vec4(_geometry.position.xyz, 1.0) * modelMat; \n" +
+            "vec3 diff = worldPos.xyz - camPos; \n" +
+            "float height = pow(diff.x, 2) + pow(diff.z, 2) * amount; \n" +
+            "vec4 offset = vec4(0.0, 0.0, height, 1.0); \n" +
+            "vec4 newPos = worldPos + offset * inverseModelMat; \n" +
+            "_geometry.position = newPos;"
+        
+        mat.shaderModifiers = [SCNShaderModifierEntryPoint.geometry: globeShaderModifier]
+        // mat4 modelMat
+        mat.setValue(NSValue(scnMatrix4: planeNode.transform), forKey: "modelMat")
+        // mat4 inverseModelMat
+        mat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(planeNode.transform)), forKey: "inverseModelMat")
+        // float amount
+        mat.setValue(NSNumber(value: 0.005), forKey: "amount")
+        // vec3 camPos
+        mat.setValue(NSValue(scnVector3: globeNode.position), forKey: "camPos")
+        
+        planeNode.geometry = SCNPlane()
+        let geo = (planeNode.geometry! as! SCNPlane)
+        geo.widthSegmentCount = 10;
+        geo.heightSegmentCount = 10;
+        planeNode.geometry?.materials = [mat]
+        
+        self.gameScene.rootNode.addChildNode(planeNode)
+        
+        /*cubeNode.runAction(
+            SCNAction.repeatForever(
+                SCNAction.rotateBy(x: 0.0, y: Double.pi, z: 0.0, duration: 2.0)
+            )
+        )*/
     }
     
     override var prefersStatusBarHidden: Bool {
@@ -125,6 +203,19 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         } else {
             return .all
         }
+    }
+    
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval)
+    {
+        print(time)
+        // mat4 modelMat
+        mat.setValue(NSValue(scnMatrix4: planeNode.transform), forKey: "modelMat")
+        // mat4 inverseModelMat
+        mat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(planeNode.transform)), forKey: "inverseModelMat")
+        // float amount
+        mat.setValue(NSNumber(value: 0.005), forKey: "amount")
+        // vec3 camPos
+        mat.setValue(NSValue(scnVector3: globeNode.position), forKey: "camPos")
     }
     
     /// Movement logic for player to be used in update loop
