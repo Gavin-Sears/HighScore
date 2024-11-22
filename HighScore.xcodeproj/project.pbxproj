@@ -7,10 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		05415E722CEDC5450010EB37 /* grassDiffuse.png in Resources */ = {isa = PBXBuildFile; fileRef = 05415E712CEDC5450010EB37 /* grassDiffuse.png */; };
-		05415E742CEDC5490010EB37 /* grassAlpha.png in Resources */ = {isa = PBXBuildFile; fileRef = 05415E732CEDC5490010EB37 /* grassAlpha.png */; };
-		05415E782CEDCB8D0010EB37 /* grassCombined.png in Resources */ = {isa = PBXBuildFile; fileRef = 05415E772CEDCB8D0010EB37 /* grassCombined.png */; };
-		05415E7A2CEDCC950010EB37 /* grass.dae in Resources */ = {isa = PBXBuildFile; fileRef = 05415E792CEDCC950010EB37 /* grass.dae */; };
+		0556CF1A2CEEDED400676FB1 /* grass.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0556CF192CEEDED400676FB1 /* grass.dae */; };
+		0556CF1C2CEEDF3700676FB1 /* grassCombined.png in Resources */ = {isa = PBXBuildFile; fileRef = 0556CF1B2CEEDF3700676FB1 /* grassCombined.png */; };
 		05CB98D12CE815F500EF1872 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CB98D02CE815F500EF1872 /* AppDelegate.swift */; };
 		05CB98D32CE815F500EF1872 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CB98D22CE815F500EF1872 /* SceneDelegate.swift */; };
 		05CB98D52CE815F500EF1872 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CB98D42CE815F500EF1872 /* ViewController.swift */; };
@@ -24,10 +22,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		05415E712CEDC5450010EB37 /* grassDiffuse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = grassDiffuse.png; sourceTree = "<group>"; };
-		05415E732CEDC5490010EB37 /* grassAlpha.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = grassAlpha.png; sourceTree = "<group>"; };
-		05415E772CEDCB8D0010EB37 /* grassCombined.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = grassCombined.png; path = ../../../../../Desktop/TestObjects/grassCombined.png; sourceTree = "<group>"; };
-		05415E792CEDCC950010EB37 /* grass.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = grass.dae; sourceTree = "<group>"; };
+		0556CF192CEEDED400676FB1 /* grass.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = grass.dae; sourceTree = "<group>"; };
+		0556CF1B2CEEDF3700676FB1 /* grassCombined.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = grassCombined.png; path = ../../../../../Desktop/grassCombined.png; sourceTree = "<group>"; };
 		05CB98CD2CE815F500EF1872 /* HighScore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HighScore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05CB98D02CE815F500EF1872 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		05CB98D22CE815F500EF1872 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -89,7 +85,7 @@
 		05FFE05C2CED582800DDAF65 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				05415E792CEDCC950010EB37 /* grass.dae */,
+				0556CF192CEEDED400676FB1 /* grass.dae */,
 				05FFE0682CED861100DDAF65 /* stars.dae */,
 				05FFE05F2CED588800DDAF65 /* testWall.dae */,
 			);
@@ -99,9 +95,7 @@
 		05FFE0632CED7EB300DDAF65 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
-				05415E772CEDCB8D0010EB37 /* grassCombined.png */,
-				05415E732CEDC5490010EB37 /* grassAlpha.png */,
-				05415E712CEDC5450010EB37 /* grassDiffuse.png */,
+				0556CF1B2CEEDF3700676FB1 /* grassCombined.png */,
 				05FFE0642CED7EBC00DDAF65 /* stars.png */,
 			);
 			path = Textures;
@@ -165,16 +159,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				05415E742CEDC5490010EB37 /* grassAlpha.png in Resources */,
 				05FFE0602CED588800DDAF65 /* testWall.dae in Resources */,
-				05415E722CEDC5450010EB37 /* grassDiffuse.png in Resources */,
+				0556CF1A2CEEDED400676FB1 /* grass.dae in Resources */,
 				05CB98DA2CE815F600EF1872 /* Assets.xcassets in Resources */,
 				05CB98DD2CE815F600EF1872 /* Base in Resources */,
 				05CB98D82CE815F500EF1872 /* Base in Resources */,
+				0556CF1C2CEEDF3700676FB1 /* grassCombined.png in Resources */,
 				05FFE0692CED861100DDAF65 /* stars.dae in Resources */,
 				05FFE0652CED7EBC00DDAF65 /* stars.png in Resources */,
-				05415E782CEDCB8D0010EB37 /* grassCombined.png in Resources */,
-				05415E7A2CEDCC950010EB37 /* grass.dae in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

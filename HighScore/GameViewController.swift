@@ -28,7 +28,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     // Camera
     private var cameraNode: SCNNode = SCNNode()
     private var camTracks: Bool = false
-    private let camPos: SCNVector3 = SCNVector3(x: 0.0, y: 30.0, z: 0.0)
+    private let camPos: SCNVector3 = SCNVector3(x: 0.0, y: 24.0, z: 0.0)
     private let relCamPos: SCNVector3 = SCNVector3(x: 0, y: 24, z: -28)
     
     // Update loop
@@ -45,7 +45,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     public var mat: SCNMaterial = SCNMaterial()
     public var modelMat: SCNMatrix4 = SCNMatrix4()
     public var inverseModelMat: SCNMatrix4 = SCNMatrix4()
-    public var planeNode: SCNNode = SCNNode()
+    public var grassNode: SCNNode = SCNNode()
     public var globeNode: SCNNode = SCNNode()
     
     public var skyNode: SCNNode = SCNNode()
@@ -67,7 +67,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         gameView.isPlaying = true
         gameView.loops = true // if render loop stops again
         gameView.rendersContinuously = true // change if issues
-        //gameView.allowsCameraControl = true
+        gameView.allowsCameraControl = true
         gameView.showsStatistics = true
         gameView.backgroundColor = UIColor.black
         
@@ -167,22 +167,51 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
             "uniform mat4 inverseModelMat; \n" +
             "uniform float amount; \n" +
             "uniform vec3 camPos; \n" +
-            "vec4 worldPos = 10.0 * (vec4(_geometry.position.xyz, 1.0) * modelMat); \n" +
+            "vec4 worldPos = (modelMat * vec4(_geometry.position.xyz, 1.0)); \n" +
             "vec3 diff = worldPos.xyz - camPos; \n" +
-            "float height = (pow(diff.x, 2) * -amount) + (pow(diff.z, 2) * -amount); \n" +
+            "float height = ((pow(diff.x, 2) * -amount) + (pow(diff.z, 2) * -amount)); \n" +
             "vec4 offset = vec4(0.0, height, 0.0, 1.0); \n" +
-            "vec4 newPos = 0.1 * ((worldPos + offset) * inverseModelMat); \n" +
+            "vec4 newPos = inverseModelMat * (worldPos + offset); \n" +
             "_geometry.position = newPos;"
         
+        let grassWaveModifier =
+            "uniform float zThresh; \n" +
+            "uniform vec3 xyOffset; \n" +
+            "uniform float magnitude; \n" +
+            "uniform float waveHeight; \n" +
+            "uniform float grassHeight; \n" +
+            "uniform float speed; \n" +
+            "if (_geometry.position.z > zThresh) \n" +
+            "{ \n" +
+            "   float intensity = (_geometry.position.z - zThresh) / waveHeight; \n" +
+            "   _geometry.position.xy += (magnitude * sin(u_time * speed) + xyOffset.xy) * intensity; \n" +
+            "   _geometry.position.z += grassHeight * intensity; \n" +
+            "} \n"
+        
+        mat.diffuse.minificationFilter = SCNFilterMode.none
+        mat.diffuse.magnificationFilter = SCNFilterMode.none
         mat.diffuse.contents = UIImage(named: "grassCombined")
+        mat.lightingModel = SCNMaterial.LightingModel.constant
         mat.blendMode = SCNBlendMode.alpha
-        //mat.shaderModifiers = [SCNShaderModifierEntryPoint.geometry: globeShaderModifier]
+        mat.shaderModifiers = [SCNShaderModifierEntryPoint.geometry: globeShaderModifier]//[SCNShaderModifierEntryPoint.geometry: globeShaderModifier]
+        
+        mat.setValue(NSNumber(value: 2.0), forKey: "zThresh")
+        
+        mat.setValue(NSValue(scnVector3: SCNVector3(0.05, 0.05, 0.0)), forKey: "xyOffset")
+        
+        mat.setValue(NSNumber(value: 0.02), forKey: "magnitude")
+        
+        mat.setValue(NSNumber(value: 0.1), forKey: "waveHeight")
+        
+        mat.setValue(NSNumber(value: 0.06), forKey: "grassHeight")
+        
+        mat.setValue(NSNumber(value: 1.2), forKey: "speed")
         
         //planeNode.geometry = testNode?.geometry
         //planeNode.geometry?.materials = [mat]
         
-        let grassNode = SCNScene(named: "grass.dae")?.rootNode.childNode(withName: "Grass", recursively: true)
-        grassNode?.geometry?.materials = [mat]
+        grassNode = SCNScene(named: "grass.dae")!.rootNode.childNode(withName: "Grass", recursively: true)!
+        grassNode.geometry?.materials = [mat]
         
         /*
         for i in 1...20
@@ -193,9 +222,23 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         }
          */
         
-        grassNode?.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
-        grassNode?.scale = SCNVector3(10.0, 10.0, 2.0)
-        self.gameScene.rootNode.addChildNode(grassNode!)
+        grassNode.position = SCNVector3(1.0, 0.0, 0.0)
+        grassNode.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        grassNode.scale = SCNVector3(10.0, 10.0, 10.0)
+        
+        /*
+        grassNode?.runAction(
+            SCNAction.repeatForever(
+                SCNAction.sequence(
+                    [
+                        SCNAction.move(by: SCNVector3(1.0, 0.0, 1.0), duration: 1.0),
+                        SCNAction.move(by: SCNVector3(-1.0, 0.0, -1.0), duration: 1.0),
+                    ]
+                )
+            )
+        )
+         */
+        self.gameScene.rootNode.addChildNode(grassNode)
     }
     
     // get revesed normals, make as skybox
@@ -233,15 +276,14 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval)
     {
-        cameraNode.position = SCNVector3(cameraNode.position.x, cameraNode.position.y, cameraNode.position.z + 0.03)
-        skyNode.position.x = cameraNode.position.x
-        skyNode.position.z = cameraNode.position.z
+        cameraNode.position = SCNVector3(cameraNode.position.x, cameraNode.position.y, cameraNode.position.z + 0.03 * sin(Float(time)))
+        skyNode.position = cameraNode.position
         // mat4 modelMat
-        mat.setValue(NSValue(scnMatrix4: planeNode.transform), forKey: "modelMat")
+        mat.setValue(NSValue(scnMatrix4: grassNode.transform), forKey: "modelMat")
         // mat4 inverseModelMat
-        mat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(planeNode.transform)), forKey: "inverseModelMat")
+        mat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(grassNode.transform)), forKey: "inverseModelMat")
         // float amount
-        mat.setValue(NSNumber(value: 0.05), forKey: "amount")
+        mat.setValue(NSNumber(value: 1.0), forKey: "amount")
         // vec3 camPos
         mat.setValue(NSValue(scnVector3: cameraNode.position), forKey: "camPos")
     }
