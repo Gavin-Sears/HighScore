@@ -7,8 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0556CF1A2CEEDED400676FB1 /* grass.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0556CF192CEEDED400676FB1 /* grass.dae */; };
-		0556CF1C2CEEDF3700676FB1 /* grassCombined.png in Resources */ = {isa = PBXBuildFile; fileRef = 0556CF1B2CEEDF3700676FB1 /* grassCombined.png */; };
+		056A2B812D000454003DD649 /* waterOLD.dae in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B802D000454003DD649 /* waterOLD.dae */; };
+		056A2B832D0006B0003DD649 /* seamlessNoise.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B822D0006B0003DD649 /* seamlessNoise.png */; };
+		056A2B862D0020AD003DD649 /* brightWater.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B842D0020AC003DD649 /* brightWater.png */; };
+		056A2B872D0020AD003DD649 /* darkWater.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B852D0020AD003DD649 /* darkWater.png */; };
+		056A2B8F2D003123003DD649 /* grass.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B8E2D003123003DD649 /* grass.png */; };
+		056A2B912D003195003DD649 /* grass.dae in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B902D003195003DD649 /* grass.dae */; };
+		056A2B932D0031CF003DD649 /* water.dae in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B922D0031CF003DD649 /* water.dae */; };
 		05CB98D12CE815F500EF1872 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CB98D02CE815F500EF1872 /* AppDelegate.swift */; };
 		05CB98D32CE815F500EF1872 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CB98D22CE815F500EF1872 /* SceneDelegate.swift */; };
 		05CB98D52CE815F500EF1872 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CB98D42CE815F500EF1872 /* ViewController.swift */; };
@@ -22,8 +27,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0556CF192CEEDED400676FB1 /* grass.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = grass.dae; sourceTree = "<group>"; };
-		0556CF1B2CEEDF3700676FB1 /* grassCombined.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = grassCombined.png; path = ../../../../../Desktop/grassCombined.png; sourceTree = "<group>"; };
+		056A2B802D000454003DD649 /* waterOLD.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = waterOLD.dae; sourceTree = "<group>"; };
+		056A2B822D0006B0003DD649 /* seamlessNoise.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = seamlessNoise.png; sourceTree = "<group>"; };
+		056A2B842D0020AC003DD649 /* brightWater.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = brightWater.png; sourceTree = "<group>"; };
+		056A2B852D0020AD003DD649 /* darkWater.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = darkWater.png; sourceTree = "<group>"; };
+		056A2B8D2D0030C9003DD649 /* grassCombinedOLD.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = grassCombinedOLD.png; sourceTree = "<group>"; };
+		056A2B8E2D003123003DD649 /* grass.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = grass.png; sourceTree = "<group>"; };
+		056A2B902D003195003DD649 /* grass.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = grass.dae; sourceTree = "<group>"; };
+		056A2B922D0031CF003DD649 /* water.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; name = water.dae; path = ../../../../../Desktop/CapstoneVideoGameModels/water.dae; sourceTree = "<group>"; };
 		05CB98CD2CE815F500EF1872 /* HighScore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HighScore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05CB98D02CE815F500EF1872 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		05CB98D22CE815F500EF1872 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -49,6 +60,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		056A2B8C2D0030BC003DD649 /* Deprecated */ = {
+			isa = PBXGroup;
+			children = (
+				056A2B802D000454003DD649 /* waterOLD.dae */,
+				056A2B8D2D0030C9003DD649 /* grassCombinedOLD.png */,
+				056A2B842D0020AC003DD649 /* brightWater.png */,
+			);
+			path = Deprecated;
+			sourceTree = "<group>";
+		};
 		05CB98C42CE815F500EF1872 = {
 			isa = PBXGroup;
 			children = (
@@ -68,6 +89,7 @@
 		05CB98CF2CE815F500EF1872 /* HighScore */ = {
 			isa = PBXGroup;
 			children = (
+				056A2B8C2D0030BC003DD649 /* Deprecated */,
 				05FFE0632CED7EB300DDAF65 /* Textures */,
 				05FFE05C2CED582800DDAF65 /* Models */,
 				05CB98D02CE815F500EF1872 /* AppDelegate.swift */,
@@ -85,7 +107,8 @@
 		05FFE05C2CED582800DDAF65 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				0556CF192CEEDED400676FB1 /* grass.dae */,
+				056A2B902D003195003DD649 /* grass.dae */,
+				056A2B922D0031CF003DD649 /* water.dae */,
 				05FFE0682CED861100DDAF65 /* stars.dae */,
 				05FFE05F2CED588800DDAF65 /* testWall.dae */,
 			);
@@ -95,7 +118,9 @@
 		05FFE0632CED7EB300DDAF65 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
-				0556CF1B2CEEDF3700676FB1 /* grassCombined.png */,
+				056A2B8E2D003123003DD649 /* grass.png */,
+				056A2B852D0020AD003DD649 /* darkWater.png */,
+				056A2B822D0006B0003DD649 /* seamlessNoise.png */,
 				05FFE0642CED7EBC00DDAF65 /* stars.png */,
 			);
 			path = Textures;
@@ -159,12 +184,17 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				056A2B8F2D003123003DD649 /* grass.png in Resources */,
+				056A2B912D003195003DD649 /* grass.dae in Resources */,
 				05FFE0602CED588800DDAF65 /* testWall.dae in Resources */,
-				0556CF1A2CEEDED400676FB1 /* grass.dae in Resources */,
+				056A2B832D0006B0003DD649 /* seamlessNoise.png in Resources */,
+				056A2B862D0020AD003DD649 /* brightWater.png in Resources */,
+				056A2B812D000454003DD649 /* waterOLD.dae in Resources */,
 				05CB98DA2CE815F600EF1872 /* Assets.xcassets in Resources */,
 				05CB98DD2CE815F600EF1872 /* Base in Resources */,
+				056A2B932D0031CF003DD649 /* water.dae in Resources */,
 				05CB98D82CE815F500EF1872 /* Base in Resources */,
-				0556CF1C2CEEDF3700676FB1 /* grassCombined.png in Resources */,
+				056A2B872D0020AD003DD649 /* darkWater.png in Resources */,
 				05FFE0692CED861100DDAF65 /* stars.dae in Resources */,
 				05FFE0652CED7EBC00DDAF65 /* stars.png in Resources */,
 			);
@@ -340,6 +370,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -368,6 +399,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

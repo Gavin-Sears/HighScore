@@ -43,6 +43,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     public var lose: Bool = false
     
     public var mat: SCNMaterial = SCNMaterial()
+    public var waterMat: SCNMaterial = SCNMaterial()
     public var modelMat: SCNMatrix4 = SCNMatrix4()
     public var inverseModelMat: SCNMatrix4 = SCNMatrix4()
     public var grassNode: SCNNode = SCNNode()
@@ -124,7 +125,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         
         self.gameScene = SCNScene()
         
-        setupPlanet()
+        setupGrass()
+        setupWater()
         setupSky()
         setupLights()
         
@@ -148,7 +150,72 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         self.cameraNode.eulerAngles = SCNVector3(x: -.pi / 2, y: .pi, z: 0.0)
     }
     
-    func setupPlanet()
+    func setupWater()
+    {
+        let waterModifier = """
+            uniform sampler2D texture_UV1;
+            uniform sampler2D texture_UV2;
+            uniform float speed;
+        
+            #pragma transparent
+            #pragma body
+        
+            vec2 newCoords = _surface.diffuseTexcoord * 0.5;
+        
+            vec2 newCoords1 = newCoords + u_time * speed;
+            newCoords1 -= floor(newCoords1);
+        
+            vec2 newCoords2 = (newCoords * 1.5) - u_time * speed * 0.7;
+            newCoords2 -= floor(newCoords2);
+        
+            vec4 source1 = texture2D(texture_UV1, newCoords1);
+        
+            vec4 source2 = texture2D(texture_UV2, newCoords2);
+        
+            vec2 newCoords3 = newCoords1 - vec2(source2.r) * 0.4;
+            newCoords3 -= floor(newCoords3);
+        
+            vec4 source3 = texture2D(texture_UV1, newCoords3);
+                    
+            if (source3.r < 0.9)
+                source3.r *= 0.1;
+        
+            _output.color.a = source3.r * 0.2;
+            
+            _output.color.rgb = vec3(1.0) * _output.color.a;
+        """
+        
+        waterMat.blendMode = SCNBlendMode.alpha
+        waterMat.shaderModifiers = [SCNShaderModifierEntryPoint.fragment: waterModifier]
+        waterMat.diffuse.minificationFilter = SCNFilterMode.none
+        waterMat.diffuse.magnificationFilter = SCNFilterMode.none
+        waterMat.roughness.contents = 0.0
+        
+        let seamlessNoise = SCNMaterialProperty(contents: UIImage(named: "seamlessNoise.png")!)
+        let darkWater = SCNMaterialProperty(contents: UIImage(named: "darkWater.png")!)
+        //let brightWater = SCNMaterialProperty(contents: UIImage(named: "brightWater.png")!)
+        
+        waterMat.setValue(darkWater, forKey: "texture_UV1")
+        
+        waterMat.setValue(seamlessNoise, forKey: "texture_UV2")
+        waterMat.setValue(NSNumber(value: 0.015), forKey: "speed")
+        
+        let waterNode = SCNScene(named:"water.dae")!.rootNode.childNode(withName: "Water", recursively: true)
+        waterNode!.geometry!.materials = [waterMat]
+        waterNode?.position = SCNVector3(1.0, 0.0, 0.0)
+        waterNode?.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        
+       self.gameScene.rootNode.addChildNode(waterNode!)
+       let dirtNode = SCNScene(named:"water.dae")!.rootNode.childNode(withName: "WaterDirt", recursively: true)
+       dirtNode!.position = SCNVector3(1.0, 0.0, 0.0)
+       dirtNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+       dirtNode!.geometry!.materials[0].diffuse.contents = UIColor(red: 61.0 / 255.0, green: 41.0 / 255.0, blue: 17.0 / 255.0, alpha: 1.0)
+       
+       self.gameScene.rootNode.addChildNode(dirtNode!)
+        
+    }
+    
+    func setupGrass()
     {
         /*
         let planeNode = SCNNode()
@@ -162,35 +229,37 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         mat = SCNMaterial()
         
         // amount: 0.015-0.005
-        let globeShaderModifier =
-            "uniform mat4 modelMat; \n" +
-            "uniform mat4 inverseModelMat; \n" +
-            "uniform float amount; \n" +
-            "uniform vec3 camPos; \n" +
-            "vec4 worldPos = (modelMat * vec4(_geometry.position.xyz, 1.0)); \n" +
-            "vec3 diff = worldPos.xyz - camPos; \n" +
-            "float height = ((pow(diff.x, 2) * -amount) + (pow(diff.z, 2) * -amount)); \n" +
-            "vec4 offset = vec4(0.0, height, 0.0, 1.0); \n" +
-            "vec4 newPos = inverseModelMat * (worldPos + offset); \n" +
-            "_geometry.position = newPos;"
+        let globeShaderModifier = """
+            uniform mat4 modelMat;
+            uniform mat4 inverseModelMat;
+            uniform float amount;
+            uniform vec3 camPos;
+            vec4 worldPos = (modelMat * vec4(_geometry.position.xyz, 1.0));
+            vec3 diff = worldPos.xyz - camPos;
+            float height = ((pow(diff.x, 2) * -amount) + (pow(diff.z, 2) * -amount));
+            vec4 offset = vec4(0.0, height, 0.0, 1.0);
+            vec4 newPos = inverseModelMat * (worldPos + offset);
+            _geometry.position = newPos;
+            """
         
-        let grassWaveModifier =
-            "uniform float zThresh; \n" +
-            "uniform vec3 xyOffset; \n" +
-            "uniform float magnitude; \n" +
-            "uniform float waveHeight; \n" +
-            "uniform float grassHeight; \n" +
-            "uniform float speed; \n" +
-            "if (_geometry.position.z > zThresh) \n" +
-            "{ \n" +
-            "   float intensity = (_geometry.position.z - zThresh) / waveHeight; \n" +
-            "   _geometry.position.xy += (magnitude * sin(u_time * speed) + xyOffset.xy) * intensity; \n" +
-            "   _geometry.position.z += grassHeight * intensity; \n" +
-            "} \n"
+        let grassWaveModifier = """
+            uniform float zThresh;
+            uniform vec3 xyOffset;
+            uniform float magnitude;
+            uniform float waveHeight;
+            uniform float grassHeight;
+            uniform float speed;
+            if (_geometry.position.y > zThresh)
+            {
+               float intensity = (_geometry.position.y - zThresh) / waveHeight;
+               _geometry.position.xz += (magnitude * 0.28 * sin(u_time * speed * 3.0) + magnitude * sin(u_time * speed) + xyOffset.xz) * intensity;
+               _geometry.position.y += grassHeight * intensity;
+            }
+            """
         
         mat.diffuse.minificationFilter = SCNFilterMode.none
         mat.diffuse.magnificationFilter = SCNFilterMode.none
-        mat.diffuse.contents = UIImage(named: "grassCombined")
+        mat.diffuse.contents = UIImage(named: "grass")
         mat.lightingModel = SCNMaterial.LightingModel.constant
         mat.blendMode = SCNBlendMode.alpha
         mat.shaderModifiers = [SCNShaderModifierEntryPoint.geometry: grassWaveModifier]//[SCNShaderModifierEntryPoint.geometry: globeShaderModifier]
@@ -222,8 +291,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         }
          */
         
-        grassNode.position = SCNVector3(1.0, 0.0, 0.0)
-        grassNode.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        grassNode.position = SCNVector3(3.0, 0.0, 0.0)
+        grassNode.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
         grassNode.scale = SCNVector3(1.0, 1.0, 1.0)
         
         /*
