@@ -214,6 +214,7 @@ class air: Tile
 {
     var freshness: Float = 0.0
     var obj: SCNNode?
+    var canWalk: Bool = false
     
     required init()
     {
@@ -235,11 +236,12 @@ class grass: Tile
 {
     var freshness: Float = 1.0
     var obj: SCNNode?
+    var canWalk: Bool = true
     
     required init()
     {
         let grassWaveModifier = """
-            uniform float zThresh;
+            uniform float heightThresh;
             uniform vec3 xyOffset;
             uniform float magnitude;
             uniform float waveHeight;
@@ -247,9 +249,9 @@ class grass: Tile
             uniform float speed;
             uniform float freshness;
             
-            if (_geometry.position.y > zThresh)
+            if (_geometry.position.y > heightThresh)
             {
-               float intensity = (_geometry.position.y - zThresh) / waveHeight;
+               float intensity = (_geometry.position.y - heightThresh) / waveHeight;
                _geometry.position.xz += (magnitude * 0.28 * sin(u_time * speed * 3.0) + magnitude * sin(u_time * speed) + xyOffset.xz) * intensity * freshness;
                 float freshMod = (freshness - 0.6) * 2.5;
                _geometry.position.y += grassHeight * freshMod * intensity;
@@ -258,7 +260,6 @@ class grass: Tile
         
         let grassColorModifier = """
             uniform float freshness;
-            uniform float zThresh;
             
             if (_output.color.g > 0.03)
                 _output.color.rgb += (vec3(0.9, 0.2, 0.0) * (1 - freshness));
@@ -274,7 +275,7 @@ class grass: Tile
         grassMat.shaderModifiers = [SCNShaderModifierEntryPoint.geometry: grassWaveModifier, SCNShaderModifierEntryPoint.fragment: grassColorModifier]
         
         // setting grassWave modifier variables
-        grassMat.setValue(NSNumber(value: 2.0), forKey: "zThresh")
+        grassMat.setValue(NSNumber(value: 2.0), forKey: "heightThresh")
         grassMat.setValue(NSValue(scnVector3: SCNVector3(0.05, 0.05, 0.0)), forKey: "xyOffset")
         grassMat.setValue(NSNumber(value: 0.02), forKey: "magnitude")
         grassMat.setValue(NSNumber(value: 0.1), forKey: "waveHeight")
@@ -300,8 +301,105 @@ class grass: Tile
     func updateFreshness(amount: Float)
     {
         self.freshness += amount
-        self.obj!.geometry!.materials[0].setValue(NSNumber(value: self.freshness), forKey: "freshHeight")
-        self.obj!.geometry!.materials[0].setValue(NSNumber(value: self.freshness), forKey: "freshColor")
+        self.obj!.geometry!.materials[0].setValue(NSNumber(value: self.freshness), forKey: "freshness")
+    }
+}
+
+class water: Tile
+{
+    var freshness: Float = 1.0
+    var obj: SCNNode?
+    var canWalk: Bool = false
+    
+    required init()
+    {
+        let waterColorModifier = """
+            uniform sampler2D texture_UV1;
+            uniform sampler2D texture_UV2;
+            uniform float speed;
+            uniform float freshness;
+            
+            #pragma transparent
+            #pragma body
+            
+            vec2 newCoords = _surface.diffuseTexcoord * 2.0;
+            vec2 newCoords1 = newCoords + u_time * speed;
+            newCoords1 -= floor(newCoords1);
+            vec2 newCoords2 = (newCoords * 1.5) - u_time * speed * 0.7;
+            newCoords2 -= floor(newCoords2);
+            
+            vec4 source1 = texture2D(texture_UV1, newCoords1);
+            vec4 source2 = texture2D(texture_UV2, newCoords2);
+            
+            vec2 newCoords3 = newCoords1 - vec2(source2.r) * 0.4;
+            newCoords3 -= floor(newCoords3);
+            
+            vec4 source3 = texture2D(texture_UV1, newCoords3);
+                    
+            if (source3.r < 0.9)
+                source3.r *= 0.1;
+            
+            _output.color.a = source3.r * 0.2 + (1.0 - pow(freshness, 0.5)) * 0.4;
+            _output.color.rgb = vec3(freshness * freshness * freshness) * _output.color.a;
+            """
+        
+        let waterHeightModifier = """
+            uniform float freshness;
+            uniform float heightThresh;
+            
+            if (_geometry.position.z > heightThresh)
+                _geometry.position.z -= (1.0 - freshness) * 0.49;
+            """
+        
+        // creating material and setting properties
+        let waterMat = SCNMaterial()
+        waterMat.blendMode = SCNBlendMode.alpha
+        waterMat.shaderModifiers = [SCNShaderModifierEntryPoint.fragment: waterColorModifier, SCNShaderModifierEntryPoint.geometry: waterHeightModifier]
+        waterMat.diffuse.minificationFilter = SCNFilterMode.none
+        waterMat.diffuse.magnificationFilter = SCNFilterMode.none
+        waterMat.roughness.contents = 0.0
+        let seamlessNoise = SCNMaterialProperty(contents: UIImage(named: "seamlessNoiseBig.png")!)
+        let darkWater = SCNMaterialProperty(contents: UIImage(named: "darkWaterBig.png")!)
+        
+        // setting shader variables
+        waterMat.setValue(darkWater, forKey: "texture_UV1")
+        waterMat.setValue(seamlessNoise, forKey: "texture_UV2")
+        waterMat.setValue(NSNumber(value: 0.015), forKey: "speed")
+        waterMat.setValue(NSNumber(value: self.freshness), forKey: "freshness")
+        waterMat.setValue(NSNumber(value: 1.9), forKey: "heightThresh")
+        
+        // loading water model and adding material
+        let waterNode = SCNScene(named:"water.dae")!.rootNode.childNode(withName: "Water", recursively: true)
+        waterNode!.geometry!.materials = [waterMat]
+        waterNode!.position = SCNVector3(1.0, 0.0, 0.0)
+        waterNode?.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        
+        // loading dirt model and adding material
+        let dirtNode = SCNScene(named:"water.dae")!.rootNode.childNode(withName: "WaterDirt", recursively: true)
+        dirtNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        dirtNode!.position = SCNVector3(1.0, 0.0, 0.0)
+        dirtNode!.geometry!.materials[0].diffuse.contents = UIColor(red: 61.0 / 255.0, green: 41.0 / 255.0, blue: 17.0 / 255.0, alpha: 1.0)
+        
+        // combining two objects to one node
+        let waterObj = SCNNode()
+        waterObj.addChildNode(waterNode!)
+        waterObj.addChildNode(dirtNode!)
+        
+        self.obj = waterObj
+    }
+    
+    required init(cloneOf: Tile)
+    {
+        if let object = cloneOf.obj
+        {
+            self.obj = deepCopyNode(object)
+        }
+    }
+    
+    func updateFreshness(amount: Float)
+    {
+        self.freshness += amount
+        self.obj!.geometry!.materials[0].setValue(NSNumber(value: self.freshness), forKey: "freshness")
     }
 }
 

@@ -13,6 +13,7 @@ protocol Tile
 {
     var freshness: Float { get set }
     var obj: SCNNode? { get set }
+    var canWalk: Bool { get set }
     
     init()
     init(cloneOf: Tile)

@@ -50,6 +50,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     public var globeNode: SCNNode = SCNNode()
     
     public var grassTile: grass = grass()
+    public var waterTile: water = water()
     
     public var skyNode: SCNNode = SCNNode()
     
@@ -101,7 +102,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         grassTile.obj!.position += SCNVector3(3.0, 0.0, 0.0)
         self.gameScene.rootNode.addChildNode(grassTile.obj!)
         
-        setupWater()
+        //setupWater()
+        waterTile = water()
+        self.gameScene.rootNode.addChildNode(waterTile.obj!)
+        
         setupSky()
         setupLights()
         
@@ -373,6 +377,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         mat.setValue(NSValue(scnVector3: cameraNode.position), forKey: "camPos")
         
         //grassTile.obj!.geometry!.firstMaterial!.setValue(NSNumber(value: Float((sin(time) + 1.0) / 2.0)), forKey: "freshness")
+        //waterTile.obj!.childNode(withName: "Water", recursively: true)!.geometry!.firstMaterial!.setValue(NSNumber(value: Float((sin(time) + 1.0) / 2.0)), forKey: "freshness")
     }
     
     /// Movement logic for player to be used in update loop
