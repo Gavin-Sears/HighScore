@@ -193,7 +193,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         mat.diffuse.contents = UIImage(named: "grassCombined")
         mat.lightingModel = SCNMaterial.LightingModel.constant
         mat.blendMode = SCNBlendMode.alpha
-        mat.shaderModifiers = [SCNShaderModifierEntryPoint.geometry: globeShaderModifier]//[SCNShaderModifierEntryPoint.geometry: globeShaderModifier]
+        mat.shaderModifiers = [SCNShaderModifierEntryPoint.geometry: grassWaveModifier]//[SCNShaderModifierEntryPoint.geometry: globeShaderModifier]
         
         mat.setValue(NSNumber(value: 2.0), forKey: "zThresh")
         
@@ -224,7 +224,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         
         grassNode.position = SCNVector3(1.0, 0.0, 0.0)
         grassNode.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
-        grassNode.scale = SCNVector3(10.0, 10.0, 10.0)
+        grassNode.scale = SCNVector3(1.0, 1.0, 1.0)
         
         /*
         grassNode?.runAction(
@@ -259,7 +259,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         
         skyNode.geometry?.materials = [sphereMat]
         
-        self.gameScene.rootNode.addChildNode(skyNode)
+        //self.gameScene.rootNode.addChildNode(skyNode)
     }
     
     override var prefersStatusBarHidden: Bool {
@@ -276,7 +276,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval)
     {
-        cameraNode.position = SCNVector3(cameraNode.position.x, cameraNode.position.y, cameraNode.position.z + 0.03 * sin(Float(time)))
+        //cameraNode.position = SCNVector3(cameraNode.position.x, cameraNode.position.y, cameraNode.position.z + 0.03 * sin(Float(time)))
         skyNode.position = cameraNode.position
         // mat4 modelMat
         mat.setValue(NSValue(scnMatrix4: grassNode.transform), forKey: "modelMat")
