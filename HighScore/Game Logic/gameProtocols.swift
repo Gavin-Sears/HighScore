@@ -15,8 +15,9 @@ protocol Tile
     var obj: SCNNode? { get set }
     
     init()
-    
     init(cloneOf: Tile)
+    
+    func updateFreshness(amount: Float)
 }
 
 protocol Entity

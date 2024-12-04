@@ -16,6 +16,7 @@ class Level
     public var gameView: SCNView
     // Width, Length, Height
     private var levelSize: [Int] = [1, 1, 1]
+    // 0 is air, 1 is grass, 2 is water, 3 is tree, 4 is rock
     private var tileArray: [Tile] = []
     private var lights: [SCNNode] = []
     

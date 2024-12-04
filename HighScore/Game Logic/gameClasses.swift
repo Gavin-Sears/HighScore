@@ -224,6 +224,85 @@ class air: Tile
     {
         self.obj = nil
     }
+    
+    func updateFreshness(amount: Float)
+    {
+        self.freshness += amount
+    }
+}
+
+class grass: Tile
+{
+    var freshness: Float = 1.0
+    var obj: SCNNode?
+    
+    required init()
+    {
+        let grassWaveModifier = """
+            uniform float zThresh;
+            uniform vec3 xyOffset;
+            uniform float magnitude;
+            uniform float waveHeight;
+            uniform float grassHeight;
+            uniform float speed;
+            uniform float freshness;
+            
+            if (_geometry.position.y > zThresh)
+            {
+               float intensity = (_geometry.position.y - zThresh) / waveHeight;
+               _geometry.position.xz += (magnitude * 0.28 * sin(u_time * speed * 3.0) + magnitude * sin(u_time * speed) + xyOffset.xz) * intensity * freshness;
+                float freshMod = (freshness - 0.6) * 2.5;
+               _geometry.position.y += grassHeight * freshMod * intensity;
+            }
+            """
+        
+        let grassColorModifier = """
+            uniform float freshness;
+            uniform float zThresh;
+            
+            if (_output.color.g > 0.03)
+                _output.color.rgb += (vec3(0.9, 0.2, 0.0) * (1 - freshness));
+            """
+    
+        // setting material properties and adding modifiers
+        let grassMat = SCNMaterial()
+        grassMat.diffuse.minificationFilter = SCNFilterMode.none
+        grassMat.diffuse.magnificationFilter = SCNFilterMode.none
+        grassMat.diffuse.contents = UIImage(named: "grass")
+        grassMat.lightingModel = SCNMaterial.LightingModel.constant
+        grassMat.blendMode = SCNBlendMode.alpha
+        grassMat.shaderModifiers = [SCNShaderModifierEntryPoint.geometry: grassWaveModifier, SCNShaderModifierEntryPoint.fragment: grassColorModifier]
+        
+        // setting grassWave modifier variables
+        grassMat.setValue(NSNumber(value: 2.0), forKey: "zThresh")
+        grassMat.setValue(NSValue(scnVector3: SCNVector3(0.05, 0.05, 0.0)), forKey: "xyOffset")
+        grassMat.setValue(NSNumber(value: 0.02), forKey: "magnitude")
+        grassMat.setValue(NSNumber(value: 0.1), forKey: "waveHeight")
+        grassMat.setValue(NSNumber(value: 0.06), forKey: "grassHeight")
+        grassMat.setValue(NSNumber(value: 1.2), forKey: "speed")
+        grassMat.setValue(NSNumber(value: self.freshness), forKey: "freshness")
+        
+        // loading model and adding material
+        let grassNode = SCNScene(named: "grass.dae")!.rootNode.childNode(withName: "Grass", recursively: true)!
+        grassNode.geometry?.materials = [grassMat]
+        
+        self.obj = grassNode
+    }
+    
+    required init(cloneOf: Tile)
+    {
+        if let object = cloneOf.obj
+        {
+            self.obj = deepCopyNode(object)
+        }
+    }
+    
+    func updateFreshness(amount: Float)
+    {
+        self.freshness += amount
+        self.obj!.geometry!.materials[0].setValue(NSNumber(value: self.freshness), forKey: "freshHeight")
+        self.obj!.geometry!.materials[0].setValue(NSNumber(value: self.freshness), forKey: "freshColor")
+    }
 }
 
 //HELPER FUNCTIONS

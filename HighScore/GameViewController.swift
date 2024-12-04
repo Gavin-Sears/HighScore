@@ -49,6 +49,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     public var grassNode: SCNNode = SCNNode()
     public var globeNode: SCNNode = SCNNode()
     
+    public var grassTile: grass = grass()
+    
     public var skyNode: SCNNode = SCNNode()
     
     // Beginning functions
@@ -86,6 +88,26 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         gameView.scene = self.gameScene
     }
     
+    // MOST IMPORTANT METHOD
+    /// Populating game scene and UI scene with nodes
+    func setupNodes()
+    {
+        setupCamera()
+        
+        self.gameScene = SCNScene()
+        
+        //setupGrass()
+        grassTile = grass()
+        grassTile.obj!.position += SCNVector3(3.0, 0.0, 0.0)
+        self.gameScene.rootNode.addChildNode(grassTile.obj!)
+        
+        setupWater()
+        setupSky()
+        setupLights()
+        
+        self.gameScene.rootNode.addChildNode(self.cameraNode)
+    }
+    
     func setupLights()
     {
         // create and add a light to the scene
@@ -115,22 +137,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         ambientLightNode.light!.intensity = 800
         self.gameScene.rootNode.addChildNode(ambientLightNode)
         
-    }
-    
-    // MOST IMPORTANT METHOD
-    /// Populating game scene and UI scene with nodes
-    func setupNodes()
-    {
-        setupCamera()
-        
-        self.gameScene = SCNScene()
-        
-        setupGrass()
-        setupWater()
-        setupSky()
-        setupLights()
-        
-        self.gameScene.rootNode.addChildNode(self.cameraNode)
     }
     
     func setupCamera()
@@ -172,7 +178,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         
             vec4 source2 = texture2D(texture_UV2, newCoords2);
         
-            vec2 newCoords3 = newCoords1 - vec2(source2.r) * 0.4;
             vec2 newCoords3 = newCoords1 - vec2(source2.r) * 0.4;
             newCoords3 -= floor(newCoords3);
         
@@ -366,6 +371,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         mat.setValue(NSNumber(value: 1.0), forKey: "amount")
         // vec3 camPos
         mat.setValue(NSValue(scnVector3: cameraNode.position), forKey: "camPos")
+        
+        //grassTile.obj!.geometry!.firstMaterial!.setValue(NSNumber(value: Float((sin(time) + 1.0) / 2.0)), forKey: "freshness")
     }
     
     /// Movement logic for player to be used in update loop
