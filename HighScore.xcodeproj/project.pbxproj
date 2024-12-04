@@ -14,6 +14,14 @@
 		056A2B8F2D003123003DD649 /* grass.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B8E2D003123003DD649 /* grass.png */; };
 		056A2B912D003195003DD649 /* grass.dae in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B902D003195003DD649 /* grass.dae */; };
 		056A2B932D0031CF003DD649 /* water.dae in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B922D0031CF003DD649 /* water.dae */; };
+		056A2B952D00DCC0003DD649 /* levelClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 056A2B942D00DCC0003DD649 /* levelClass.swift */; };
+		056A2B982D00DD26003DD649 /* gameProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 056A2B972D00DD26003DD649 /* gameProtocols.swift */; };
+		056A2B9A2D00DD37003DD649 /* gameClasses.swift in Sources */ = {isa = PBXBuildFile; fileRef = 056A2B992D00DD37003DD649 /* gameClasses.swift */; };
+		056A2B9D2D00E3F4003DD649 /* SCNVector3Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 056A2B9C2D00E3F4003DD649 /* SCNVector3Extensions.swift */; };
+		056A2BA02D00E9C7003DD649 /* darkWaterBig.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B9E2D00E9C7003DD649 /* darkWaterBig.png */; };
+		056A2BA12D00E9C7003DD649 /* seamlessNoiseBig.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B9F2D00E9C7003DD649 /* seamlessNoiseBig.png */; };
+		056A2BA42D00EB2A003DD649 /* darkWaterBigger.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2BA22D00EB2A003DD649 /* darkWaterBigger.png */; };
+		056A2BA52D00EB2A003DD649 /* seamlessNoiseBigger.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2BA32D00EB2A003DD649 /* seamlessNoiseBigger.png */; };
 		05CB98D12CE815F500EF1872 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CB98D02CE815F500EF1872 /* AppDelegate.swift */; };
 		05CB98D32CE815F500EF1872 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CB98D22CE815F500EF1872 /* SceneDelegate.swift */; };
 		05CB98D52CE815F500EF1872 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CB98D42CE815F500EF1872 /* ViewController.swift */; };
@@ -35,6 +43,14 @@
 		056A2B8E2D003123003DD649 /* grass.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = grass.png; sourceTree = "<group>"; };
 		056A2B902D003195003DD649 /* grass.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = grass.dae; sourceTree = "<group>"; };
 		056A2B922D0031CF003DD649 /* water.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; name = water.dae; path = ../../../../../Desktop/CapstoneVideoGameModels/water.dae; sourceTree = "<group>"; };
+		056A2B942D00DCC0003DD649 /* levelClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = levelClass.swift; sourceTree = "<group>"; };
+		056A2B972D00DD26003DD649 /* gameProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = gameProtocols.swift; sourceTree = "<group>"; };
+		056A2B992D00DD37003DD649 /* gameClasses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = gameClasses.swift; sourceTree = "<group>"; };
+		056A2B9C2D00E3F4003DD649 /* SCNVector3Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SCNVector3Extensions.swift; sourceTree = "<group>"; };
+		056A2B9E2D00E9C7003DD649 /* darkWaterBig.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = darkWaterBig.png; sourceTree = "<group>"; };
+		056A2B9F2D00E9C7003DD649 /* seamlessNoiseBig.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = seamlessNoiseBig.png; sourceTree = "<group>"; };
+		056A2BA22D00EB2A003DD649 /* darkWaterBigger.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = darkWaterBigger.png; sourceTree = "<group>"; };
+		056A2BA32D00EB2A003DD649 /* seamlessNoiseBigger.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = seamlessNoiseBigger.png; sourceTree = "<group>"; };
 		05CB98CD2CE815F500EF1872 /* HighScore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HighScore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05CB98D02CE815F500EF1872 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		05CB98D22CE815F500EF1872 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -63,16 +79,40 @@
 		056A2B8C2D0030BC003DD649 /* Deprecated */ = {
 			isa = PBXGroup;
 			children = (
+				056A2BA22D00EB2A003DD649 /* darkWaterBigger.png */,
+				056A2BA32D00EB2A003DD649 /* seamlessNoiseBigger.png */,
+				056A2B852D0020AD003DD649 /* darkWater.png */,
+				056A2B822D0006B0003DD649 /* seamlessNoise.png */,
 				056A2B802D000454003DD649 /* waterOLD.dae */,
 				056A2B8D2D0030C9003DD649 /* grassCombinedOLD.png */,
 				056A2B842D0020AC003DD649 /* brightWater.png */,
+				05FFE05F2CED588800DDAF65 /* testWall.dae */,
 			);
 			path = Deprecated;
+			sourceTree = "<group>";
+		};
+		056A2B962D00DD0A003DD649 /* Game Logic */ = {
+			isa = PBXGroup;
+			children = (
+				056A2B942D00DCC0003DD649 /* levelClass.swift */,
+				056A2B992D00DD37003DD649 /* gameClasses.swift */,
+				056A2B972D00DD26003DD649 /* gameProtocols.swift */,
+			);
+			path = "Game Logic";
+			sourceTree = "<group>";
+		};
+		056A2B9B2D00E3C5003DD649 /* 3rdPartyTools */ = {
+			isa = PBXGroup;
+			children = (
+				056A2B9C2D00E3F4003DD649 /* SCNVector3Extensions.swift */,
+			);
+			path = 3rdPartyTools;
 			sourceTree = "<group>";
 		};
 		05CB98C42CE815F500EF1872 = {
 			isa = PBXGroup;
 			children = (
+				056A2B9B2D00E3C5003DD649 /* 3rdPartyTools */,
 				05CB98CF2CE815F500EF1872 /* HighScore */,
 				05CB98CE2CE815F500EF1872 /* Products */,
 			);
@@ -89,6 +129,7 @@
 		05CB98CF2CE815F500EF1872 /* HighScore */ = {
 			isa = PBXGroup;
 			children = (
+				056A2B962D00DD0A003DD649 /* Game Logic */,
 				056A2B8C2D0030BC003DD649 /* Deprecated */,
 				05FFE0632CED7EB300DDAF65 /* Textures */,
 				05FFE05C2CED582800DDAF65 /* Models */,
@@ -110,7 +151,6 @@
 				056A2B902D003195003DD649 /* grass.dae */,
 				056A2B922D0031CF003DD649 /* water.dae */,
 				05FFE0682CED861100DDAF65 /* stars.dae */,
-				05FFE05F2CED588800DDAF65 /* testWall.dae */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -118,9 +158,9 @@
 		05FFE0632CED7EB300DDAF65 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
+				056A2B9E2D00E9C7003DD649 /* darkWaterBig.png */,
+				056A2B9F2D00E9C7003DD649 /* seamlessNoiseBig.png */,
 				056A2B8E2D003123003DD649 /* grass.png */,
-				056A2B852D0020AD003DD649 /* darkWater.png */,
-				056A2B822D0006B0003DD649 /* seamlessNoise.png */,
 				05FFE0642CED7EBC00DDAF65 /* stars.png */,
 			);
 			path = Textures;
@@ -184,8 +224,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				056A2BA12D00E9C7003DD649 /* seamlessNoiseBig.png in Resources */,
 				056A2B8F2D003123003DD649 /* grass.png in Resources */,
 				056A2B912D003195003DD649 /* grass.dae in Resources */,
+				056A2BA02D00E9C7003DD649 /* darkWaterBig.png in Resources */,
 				05FFE0602CED588800DDAF65 /* testWall.dae in Resources */,
 				056A2B832D0006B0003DD649 /* seamlessNoise.png in Resources */,
 				056A2B862D0020AD003DD649 /* brightWater.png in Resources */,
@@ -193,8 +235,10 @@
 				05CB98DA2CE815F600EF1872 /* Assets.xcassets in Resources */,
 				05CB98DD2CE815F600EF1872 /* Base in Resources */,
 				056A2B932D0031CF003DD649 /* water.dae in Resources */,
+				056A2BA42D00EB2A003DD649 /* darkWaterBigger.png in Resources */,
 				05CB98D82CE815F500EF1872 /* Base in Resources */,
 				056A2B872D0020AD003DD649 /* darkWater.png in Resources */,
+				056A2BA52D00EB2A003DD649 /* seamlessNoiseBigger.png in Resources */,
 				05FFE0692CED861100DDAF65 /* stars.dae in Resources */,
 				05FFE0652CED7EBC00DDAF65 /* stars.png in Resources */,
 			);
@@ -208,9 +252,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				05FFE05B2CE81CB000DDAF65 /* GameViewController.swift in Sources */,
+				056A2B952D00DCC0003DD649 /* levelClass.swift in Sources */,
 				05CB98D52CE815F500EF1872 /* ViewController.swift in Sources */,
 				05CB98D12CE815F500EF1872 /* AppDelegate.swift in Sources */,
 				05CB98D32CE815F500EF1872 /* SceneDelegate.swift in Sources */,
+				056A2B982D00DD26003DD649 /* gameProtocols.swift in Sources */,
+				056A2B9A2D00DD37003DD649 /* gameClasses.swift in Sources */,
+				056A2B9D2D00E3F4003DD649 /* SCNVector3Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

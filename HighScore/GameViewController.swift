@@ -160,7 +160,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
             #pragma transparent
             #pragma body
         
-            vec2 newCoords = _surface.diffuseTexcoord * 0.5;
+            vec2 newCoords = _surface.diffuseTexcoord * 2.0;
         
             vec2 newCoords1 = newCoords + u_time * speed;
             newCoords1 -= floor(newCoords1);
@@ -172,6 +172,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         
             vec4 source2 = texture2D(texture_UV2, newCoords2);
         
+            vec2 newCoords3 = newCoords1 - vec2(source2.r) * 0.4;
             vec2 newCoords3 = newCoords1 - vec2(source2.r) * 0.4;
             newCoords3 -= floor(newCoords3);
         
@@ -191,8 +192,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         waterMat.diffuse.magnificationFilter = SCNFilterMode.none
         waterMat.roughness.contents = 0.0
         
-        let seamlessNoise = SCNMaterialProperty(contents: UIImage(named: "seamlessNoise.png")!)
-        let darkWater = SCNMaterialProperty(contents: UIImage(named: "darkWater.png")!)
+        let seamlessNoise = SCNMaterialProperty(contents: UIImage(named: "seamlessNoiseBig.png")!)
+        let darkWater = SCNMaterialProperty(contents: UIImage(named: "darkWaterBig.png")!)
         //let brightWater = SCNMaterialProperty(contents: UIImage(named: "brightWater.png")!)
         
         waterMat.setValue(darkWater, forKey: "texture_UV1")
@@ -205,13 +206,18 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         waterNode?.position = SCNVector3(1.0, 0.0, 0.0)
         waterNode?.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
         
-       self.gameScene.rootNode.addChildNode(waterNode!)
-       let dirtNode = SCNScene(named:"water.dae")!.rootNode.childNode(withName: "WaterDirt", recursively: true)
-       dirtNode!.position = SCNVector3(1.0, 0.0, 0.0)
-       dirtNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
-       dirtNode!.geometry!.materials[0].diffuse.contents = UIColor(red: 61.0 / 255.0, green: 41.0 / 255.0, blue: 17.0 / 255.0, alpha: 1.0)
+        self.gameScene.rootNode.addChildNode(waterNode!)
+        let dirtNode = SCNScene(named:"water.dae")!.rootNode.childNode(withName: "WaterDirt", recursively: true)
+        dirtNode!.position = SCNVector3(1.0, 0.0, 0.0)
+        dirtNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        dirtNode!.geometry!.materials[0].diffuse.contents = UIColor(red: 61.0 / 255.0, green: 41.0 / 255.0, blue: 17.0 / 255.0, alpha: 1.0)
        
-       self.gameScene.rootNode.addChildNode(dirtNode!)
+        self.gameScene.rootNode.addChildNode(dirtNode!)
+        
+        let waterCopy = deepCopyNode(waterNode!)
+        waterCopy.position += SCNVector3(-1.0, 0.0, 0.0)
+
+        self.gameScene.rootNode.addChildNode(waterCopy)
         
     }
     
@@ -308,6 +314,11 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         )
          */
         self.gameScene.rootNode.addChildNode(grassNode)
+        
+        let copyGrass = deepCopyNode(grassNode)
+        copyGrass.position += SCNVector3(5.0, 0.0, 0.0)
+        
+       self.gameScene.rootNode.addChildNode(copyGrass)
     }
     
     // get revesed normals, make as skybox
