@@ -229,6 +229,14 @@ class air: Tile
     func updateFreshness(amount: Float)
     {
         self.freshness += amount
+        if (self.freshness > 1.0)
+        {
+            self.freshness = 1.0
+        }
+        else if (self.freshness < 0.0)
+        {
+            self.freshness = 0.0
+        }
     }
 }
 
@@ -285,6 +293,7 @@ class grass: Tile
         
         // loading model and adding material
         let grassNode = SCNScene(named: "grass.dae")!.rootNode.childNode(withName: "Grass", recursively: true)!
+        grassNode.position = SCNVector3(0.0, 0.0, 0.0)
         grassNode.geometry?.materials = [grassMat]
         
         self.obj = grassNode
@@ -298,10 +307,25 @@ class grass: Tile
         }
     }
     
+    func setFreshness(amount: Float)
+    {
+        self.freshness = amount
+        self.obj?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
+    }
+    
     func updateFreshness(amount: Float)
     {
         self.freshness += amount
-        self.obj!.geometry!.materials[0].setValue(NSNumber(value: self.freshness), forKey: "freshness")
+        if (self.freshness > 1.0)
+        {
+            self.freshness = 1.0
+        }
+        else if (self.freshness < 0.0)
+        {
+            self.freshness = 0.0
+        }
+        
+        self.obj?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
     }
 }
 
@@ -369,15 +393,17 @@ class water: Tile
         waterMat.setValue(NSNumber(value: 1.9), forKey: "heightThresh")
         
         // loading water model and adding material
-        let waterNode = SCNScene(named:"water.dae")!.rootNode.childNode(withName: "Water", recursively: true)
+        let waterScene = SCNScene(named:"water.dae")
+        
+        let waterNode = waterScene!.rootNode.childNode(withName: "Water", recursively: true)
         waterNode!.geometry!.materials = [waterMat]
-        waterNode!.position = SCNVector3(1.0, 0.0, 0.0)
-        waterNode?.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        waterNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        waterNode!.position = SCNVector3(0.0, 0.0, 0.0)
         
         // loading dirt model and adding material
-        let dirtNode = SCNScene(named:"water.dae")!.rootNode.childNode(withName: "WaterDirt", recursively: true)
+        let dirtNode = waterScene!.rootNode.childNode(withName: "WaterDirt", recursively: true)
         dirtNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
-        dirtNode!.position = SCNVector3(1.0, 0.0, 0.0)
+        dirtNode!.position = SCNVector3(0.0, 0.0, 0.0)
         dirtNode!.geometry!.materials[0].diffuse.contents = UIColor(red: 61.0 / 255.0, green: 41.0 / 255.0, blue: 17.0 / 255.0, alpha: 1.0)
         
         // combining two objects to one node
@@ -396,10 +422,241 @@ class water: Tile
         }
     }
     
+    func setFreshness(amount: Float)
+    {
+        self.freshness = amount
+        self.obj?.childNode(withName: "Water", recursively: true)?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
+    }
+    
     func updateFreshness(amount: Float)
     {
         self.freshness += amount
-        self.obj!.geometry!.materials[0].setValue(NSNumber(value: self.freshness), forKey: "freshness")
+        if (self.freshness > 1.0)
+        {
+            self.freshness = 1.0
+        }
+        else if (self.freshness < 0.0)
+        {
+            self.freshness = 0.0
+        }
+            
+        self.obj?.childNode(withName: "Water", recursively: true)?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
+    }
+}
+
+class tree: Tile
+{
+    var freshness: Float = 1.0
+    var obj: SCNNode?
+    var canWalk: Bool = false
+    var originalColors: UIImage?
+    
+    required init()
+    {
+        let grassWaveModifier = """
+            uniform float heightThresh;
+            uniform vec3 xyOffset;
+            uniform float magnitude;
+            uniform float waveHeight;
+            uniform float grassHeight;
+            uniform float speed;
+            uniform float freshness;
+            
+            if (_geometry.position.z > heightThresh)
+            {
+               float intensity = (_geometry.position.z - heightThresh) / waveHeight;
+                vec2 offset = (magnitude * 0.28 * sin(u_time * speed * 3.0) + magnitude * sin(u_time * speed) + xyOffset.xy) * intensity * freshness;
+               _geometry.position.xy += vec2(offset.x, -offset.y);
+                float freshMod = (freshness - 0.6) * 2.5;
+               _geometry.position.z += grassHeight * freshMod * intensity;
+            }
+            """
+        
+        let grassColorModifier = """
+            uniform float freshness;
+            
+            if (_output.color.g > 0.03)
+                _output.color.rgb += (vec3(0.9, 0.2, 0.0) * (1 - freshness));
+            """
+    
+        // setting material properties and adding modifiers
+        let grassMat = SCNMaterial()
+        grassMat.diffuse.minificationFilter = SCNFilterMode.none
+        grassMat.diffuse.magnificationFilter = SCNFilterMode.none
+        grassMat.diffuse.contents = UIImage(named: "grass")
+        grassMat.lightingModel = SCNMaterial.LightingModel.constant
+        grassMat.blendMode = SCNBlendMode.alpha
+        grassMat.shaderModifiers = [SCNShaderModifierEntryPoint.geometry: grassWaveModifier, SCNShaderModifierEntryPoint.fragment: grassColorModifier]
+        
+        // setting grassWave modifier variables
+        grassMat.setValue(NSNumber(value: 2.0), forKey: "heightThresh")
+        grassMat.setValue(NSValue(scnVector3: SCNVector3(0.05, 0.0, 0.05)), forKey: "xyOffset")
+        grassMat.setValue(NSNumber(value: 0.02), forKey: "magnitude")
+        grassMat.setValue(NSNumber(value: 0.1), forKey: "waveHeight")
+        grassMat.setValue(NSNumber(value: 0.06), forKey: "grassHeight")
+        grassMat.setValue(NSNumber(value: 1.2), forKey: "speed")
+        grassMat.setValue(NSNumber(value: self.freshness), forKey: "freshness")
+        
+        let treeScene = SCNScene(named: "tree.dae")
+        
+        // loading grass and adding material
+        let treeGrass = treeScene!.rootNode.childNode(withName: "TreeGrass", recursively: true)!
+        treeGrass.geometry?.materials = [grassMat]
+        treeGrass.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        treeGrass.position = SCNVector3(0.0, 0.0, 0.0)
+        
+        // creating tree material
+        let treeColorModifier = """
+            uniform float freshness;
+            
+            if (_output.color.r > 0.2)
+                _output.color.rgb = _output.color.rgb * freshness + vec3(0.0) * (1.0 - freshness);
+            else
+                _output.color.rgb += (vec3(0.9, 0.2, 0.0) * (1 - pow(freshness, 0.25)));
+            """
+        
+        let treeMat = SCNMaterial()
+        self.originalColors = UIImage(named: "tree.png")
+        treeMat.lightingModel = SCNMaterial.LightingModel.phong
+        treeMat.diffuse.contents = self.originalColors
+        treeMat.shaderModifiers = [SCNShaderModifierEntryPoint.fragment: treeColorModifier]
+        
+        // loading tree and adding material
+        let treeNode = treeScene!.rootNode.childNode(withName: "Tree", recursively: true)!
+        treeNode.geometry?.materials = [treeMat]
+        treeNode.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        treeNode.position = SCNVector3(0.0, 2.0, 0.0)
+        
+        // combining two objects to one node
+        let treeObj = SCNNode()
+        treeObj.addChildNode(treeGrass)
+        treeObj.addChildNode(treeNode)
+        
+        self.obj = treeObj
+    }
+    
+    required init(cloneOf: Tile)
+    {
+        if let object = cloneOf.obj
+        {
+            self.obj = deepCopyNode(object)
+        }
+    }
+    
+    func treeFreshness(amount: Float)
+    {
+        let treeNode = self.obj?.childNode(withName: "Tree", recursively: true)
+        
+        let remappedAmount = (amount * 0.8) + 0.2
+        
+        treeNode?.scale = SCNVector3(remappedAmount, remappedAmount, remappedAmount)
+        treeNode?.eulerAngles.y = .pi * amount
+        
+        treeNode?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
+    }
+    
+    func setFreshness(amount: Float)
+    {
+        self.freshness = amount
+        self.obj?.childNode(withName: "TreeGrass", recursively: true)?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
+        treeFreshness(amount: self.freshness)
+    }
+    
+    func updateFreshness(amount: Float)
+    {
+        self.freshness += amount
+        if (self.freshness > 1.0)
+        {
+            self.freshness = 1.0
+        }
+        else if (self.freshness < 0.0)
+        {
+            self.freshness = 0.0
+        }
+        
+        self.obj?.childNode(withName: "TreeGrass", recursively: true)?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
+        treeFreshness(amount: self.freshness)
+    }
+}
+
+class rock: Tile
+{
+    var freshness: Float = 1.0
+    var obj: SCNNode?
+    var canWalk: Bool = false
+    
+    required init()
+    {
+        let rockScene = SCNScene(named:"rock.dae")!
+        
+        // loading rock model
+        let rockNode = rockScene.rootNode.childNode(withName: "Rock", recursively: true)
+        rockNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        rockNode!.position = SCNVector3(0.0, 2.0, 0.0)
+        
+        // creating and setting dirt material
+        let dirtMat = SCNMaterial()
+        dirtMat.diffuse.contents = UIImage(named: "rockDirt")
+        
+        // loading dirt model
+        let dirtNode = SCNScene(named:"rock.dae")!.rootNode.childNode(withName: "RockDirt", recursively: true)
+        dirtNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        dirtNode!.position = SCNVector3(0.0, 0.0, 0.0)
+        dirtNode!.geometry!.materials = [dirtMat]
+        
+        // combining two objects to one node
+        let rockObj = SCNNode()
+        rockObj.addChildNode(rockNode!)
+        rockObj.addChildNode(dirtNode!)
+        
+        self.obj = rockObj
+    }
+    
+    required init(cloneOf: Tile)
+    {
+        if let object = cloneOf.obj
+        {
+            self.obj = deepCopyNode(object)
+        }
+    }
+    
+    func rockFreshness(amount: Float)
+    {
+        let rock = self.obj?.childNode(withName: "Rock", recursively: true)
+        
+        let remappedFreshness = floor((amount * amount) * 10.0) / 10.0
+        rock?.scale = SCNVector3(remappedFreshness, remappedFreshness, remappedFreshness)
+        rock?.eulerAngles.y = remappedFreshness * .pi
+    }
+    
+    func setFreshness(amount: Float)
+    {
+        self.freshness = amount
+        rockFreshness(amount: amount)
+        
+        if (freshness < 0.1)
+        {
+            self.canWalk = true
+        }
+        else
+        {
+            self.canWalk = false
+        }
+    }
+    
+    func updateFreshness(amount: Float)
+    {
+        self.freshness = amount
+        rockFreshness(amount: amount)
+        
+        if (freshness < 0.1)
+        {
+            self.canWalk = true
+        }
+        else
+        {
+            self.canWalk = false
+        }
     }
 }
 

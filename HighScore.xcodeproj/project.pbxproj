@@ -22,6 +22,11 @@
 		056A2BA12D00E9C7003DD649 /* seamlessNoiseBig.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B9F2D00E9C7003DD649 /* seamlessNoiseBig.png */; };
 		056A2BA42D00EB2A003DD649 /* darkWaterBigger.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2BA22D00EB2A003DD649 /* darkWaterBigger.png */; };
 		056A2BA52D00EB2A003DD649 /* seamlessNoiseBigger.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2BA32D00EB2A003DD649 /* seamlessNoiseBigger.png */; };
+		056A2BA72D012A02003DD649 /* rockDirt.dae in Resources */ = {isa = PBXBuildFile; fileRef = 056A2BA62D012A02003DD649 /* rockDirt.dae */; };
+		056A2BA92D012A0B003DD649 /* rockDirt.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2BA82D012A0A003DD649 /* rockDirt.png */; };
+		056A2BAB2D012A11003DD649 /* tree.dae in Resources */ = {isa = PBXBuildFile; fileRef = 056A2BAA2D012A11003DD649 /* tree.dae */; };
+		056A2BAD2D012A16003DD649 /* tree.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2BAC2D012A16003DD649 /* tree.png */; };
+		056A2BAF2D013C05003DD649 /* rock.dae in Resources */ = {isa = PBXBuildFile; fileRef = 056A2BAE2D013C05003DD649 /* rock.dae */; };
 		05CB98D12CE815F500EF1872 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CB98D02CE815F500EF1872 /* AppDelegate.swift */; };
 		05CB98D32CE815F500EF1872 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CB98D22CE815F500EF1872 /* SceneDelegate.swift */; };
 		05CB98D52CE815F500EF1872 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CB98D42CE815F500EF1872 /* ViewController.swift */; };
@@ -51,6 +56,11 @@
 		056A2B9F2D00E9C7003DD649 /* seamlessNoiseBig.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = seamlessNoiseBig.png; sourceTree = "<group>"; };
 		056A2BA22D00EB2A003DD649 /* darkWaterBigger.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = darkWaterBigger.png; sourceTree = "<group>"; };
 		056A2BA32D00EB2A003DD649 /* seamlessNoiseBigger.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = seamlessNoiseBigger.png; sourceTree = "<group>"; };
+		056A2BA62D012A02003DD649 /* rockDirt.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = rockDirt.dae; sourceTree = "<group>"; };
+		056A2BA82D012A0A003DD649 /* rockDirt.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = rockDirt.png; sourceTree = "<group>"; };
+		056A2BAA2D012A11003DD649 /* tree.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = tree.dae; sourceTree = "<group>"; };
+		056A2BAC2D012A16003DD649 /* tree.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tree.png; sourceTree = "<group>"; };
+		056A2BAE2D013C05003DD649 /* rock.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = rock.dae; sourceTree = "<group>"; };
 		05CB98CD2CE815F500EF1872 /* HighScore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HighScore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05CB98D02CE815F500EF1872 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		05CB98D22CE815F500EF1872 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -79,6 +89,7 @@
 		056A2B8C2D0030BC003DD649 /* Deprecated */ = {
 			isa = PBXGroup;
 			children = (
+				056A2BA62D012A02003DD649 /* rockDirt.dae */,
 				056A2BA22D00EB2A003DD649 /* darkWaterBigger.png */,
 				056A2BA32D00EB2A003DD649 /* seamlessNoiseBigger.png */,
 				056A2B852D0020AD003DD649 /* darkWater.png */,
@@ -148,9 +159,11 @@
 		05FFE05C2CED582800DDAF65 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				056A2BAE2D013C05003DD649 /* rock.dae */,
 				056A2B902D003195003DD649 /* grass.dae */,
 				056A2B922D0031CF003DD649 /* water.dae */,
 				05FFE0682CED861100DDAF65 /* stars.dae */,
+				056A2BAA2D012A11003DD649 /* tree.dae */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -162,6 +175,8 @@
 				056A2B9F2D00E9C7003DD649 /* seamlessNoiseBig.png */,
 				056A2B8E2D003123003DD649 /* grass.png */,
 				05FFE0642CED7EBC00DDAF65 /* stars.png */,
+				056A2BA82D012A0A003DD649 /* rockDirt.png */,
+				056A2BAC2D012A16003DD649 /* tree.png */,
 			);
 			path = Textures;
 			sourceTree = "<group>";
@@ -227,6 +242,8 @@
 				056A2BA12D00E9C7003DD649 /* seamlessNoiseBig.png in Resources */,
 				056A2B8F2D003123003DD649 /* grass.png in Resources */,
 				056A2B912D003195003DD649 /* grass.dae in Resources */,
+				056A2BA72D012A02003DD649 /* rockDirt.dae in Resources */,
+				056A2BAB2D012A11003DD649 /* tree.dae in Resources */,
 				056A2BA02D00E9C7003DD649 /* darkWaterBig.png in Resources */,
 				05FFE0602CED588800DDAF65 /* testWall.dae in Resources */,
 				056A2B832D0006B0003DD649 /* seamlessNoise.png in Resources */,
@@ -237,7 +254,10 @@
 				056A2B932D0031CF003DD649 /* water.dae in Resources */,
 				056A2BA42D00EB2A003DD649 /* darkWaterBigger.png in Resources */,
 				05CB98D82CE815F500EF1872 /* Base in Resources */,
+				056A2BAF2D013C05003DD649 /* rock.dae in Resources */,
+				056A2BA92D012A0B003DD649 /* rockDirt.png in Resources */,
 				056A2B872D0020AD003DD649 /* darkWater.png in Resources */,
+				056A2BAD2D012A16003DD649 /* tree.png in Resources */,
 				056A2BA52D00EB2A003DD649 /* seamlessNoiseBigger.png in Resources */,
 				05FFE0692CED861100DDAF65 /* stars.dae in Resources */,
 				05FFE0652CED7EBC00DDAF65 /* stars.png in Resources */,

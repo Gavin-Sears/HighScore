@@ -28,7 +28,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     // Camera
     private var cameraNode: SCNNode = SCNNode()
     private var camTracks: Bool = false
-    private let camPos: SCNVector3 = SCNVector3(x: 0.0, y: 24.0, z: 0.0)
+    private let camPos: SCNVector3 = SCNVector3(x: 2.0, y: 24.0, z: -2.0)
     private let relCamPos: SCNVector3 = SCNVector3(x: 0, y: 24, z: -28)
     
     // Update loop
@@ -51,6 +51,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     
     public var grassTile: grass = grass()
     public var waterTile: water = water()
+    public var treeTile: tree = tree()
+    public var rockTile: rock = rock()
     
     public var skyNode: SCNNode = SCNNode()
     
@@ -98,13 +100,23 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         self.gameScene = SCNScene()
         
         //setupGrass()
+        
         grassTile = grass()
-        grassTile.obj!.position += SCNVector3(3.0, 0.0, 0.0)
+        grassTile.obj!.position += SCNVector3(1.0, 0.0, 0.0)
         self.gameScene.rootNode.addChildNode(grassTile.obj!)
         
         //setupWater()
         waterTile = water()
+        waterTile.obj!.position += SCNVector3(-1.0, 0.0, 0.0)
         self.gameScene.rootNode.addChildNode(waterTile.obj!)
+        
+        treeTile = tree()
+        treeTile.obj!.position += SCNVector3(3.0, 0.0, 0.0)
+        self.gameScene.rootNode.addChildNode(treeTile.obj!)
+        
+        rockTile = rock()
+        rockTile.obj!.position += SCNVector3(5.0, 0.0, 0.0)
+        self.gameScene.rootNode.addChildNode(rockTile.obj!)
         
         setupSky()
         setupLights()
@@ -368,16 +380,18 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         //cameraNode.position = SCNVector3(cameraNode.position.x, cameraNode.position.y, cameraNode.position.z + 0.03 * sin(Float(time)))
         skyNode.position = cameraNode.position
         // mat4 modelMat
-        mat.setValue(NSValue(scnMatrix4: grassNode.transform), forKey: "modelMat")
+        //mat.setValue(NSValue(scnMatrix4: grassNode.transform), forKey: "modelMat")
         // mat4 inverseModelMat
-        mat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(grassNode.transform)), forKey: "inverseModelMat")
+        //mat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(grassNode.transform)), forKey: "inverseModelMat")
         // float amount
-        mat.setValue(NSNumber(value: 1.0), forKey: "amount")
+        //mat.setValue(NSNumber(value: 1.0), forKey: "amount")
         // vec3 camPos
-        mat.setValue(NSValue(scnVector3: cameraNode.position), forKey: "camPos")
+        //mat.setValue(NSValue(scnVector3: cameraNode.position), forKey: "camPos")
         
-        //grassTile.obj!.geometry!.firstMaterial!.setValue(NSNumber(value: Float((sin(time) + 1.0) / 2.0)), forKey: "freshness")
-        //waterTile.obj!.childNode(withName: "Water", recursively: true)!.geometry!.firstMaterial!.setValue(NSNumber(value: Float((sin(time) + 1.0) / 2.0)), forKey: "freshness")
+        grassTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
+        waterTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
+        treeTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
+        rockTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
     }
     
     /// Movement logic for player to be used in update loop
