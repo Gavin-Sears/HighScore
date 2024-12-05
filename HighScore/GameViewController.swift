@@ -49,10 +49,16 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     public var grassNode: SCNNode = SCNNode()
     public var globeNode: SCNNode = SCNNode()
     
+    public var curLevel: Level?
+    
     public var grassTile: grass = grass()
     public var waterTile: water = water()
     public var treeTile: tree = tree()
     public var rockTile: rock = rock()
+    
+    public var playerPos = SCNVector3(1.0, 0.0, 1.0)
+    public var timer: TimeInterval = 0.5
+    public var prevTime: TimeInterval = 999.0
     
     public var skyNode: SCNNode = SCNNode()
     
@@ -66,29 +72,25 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     /// Setting up gameview, and creating game scene
     func setupScene()
     {
-        
         gameView = self.view as? SCNView
         
         gameView.delegate = self
         gameView.isPlaying = true
         gameView.loops = true // if render loop stops again
-        gameView.rendersContinuously = true // change if issues
+        //gameView.rendersContinuously = true // change if issues
         gameView.allowsCameraControl = true
         gameView.showsStatistics = true
         gameView.backgroundColor = UIColor.black
         
-        // gameView.frame.size
+        self.curLevel = Level(gameView: self.gameView)
         
-        // add a tap gesture recognizer
-        // let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
-        // gameView.addGestureRecognizer(tapGesture)
+        // gameView.frame.size
          
         // create a new scene
-        
-        setupNodes()
+        //setupNodes()
         
         // set the scene to the view
-        gameView.scene = self.gameScene
+        gameView.scene = curLevel!.gameScene
     }
     
     // MOST IMPORTANT METHOD
@@ -101,6 +103,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         
         //setupGrass()
         
+        /*
         grassTile = grass()
         grassTile.obj!.position += SCNVector3(1.0, 0.0, 0.0)
         self.gameScene.rootNode.addChildNode(grassTile.obj!)
@@ -117,6 +120,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         rockTile = rock()
         rockTile.obj!.position += SCNVector3(5.0, 0.0, 0.0)
         self.gameScene.rootNode.addChildNode(rockTile.obj!)
+         */
         
         setupSky()
         setupLights()
@@ -127,21 +131,12 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     func setupLights()
     {
         // create and add a light to the scene
+        
         let lightNode = SCNNode()
         lightNode.light = SCNLight()
         lightNode.light!.type = .directional
         lightNode.light!.intensity = 1000
-        // position and angle
-        // this can be animated so that sun sets in west, rises in east,
-        // and is stronger in the middle of the day
         lightNode.eulerAngles = SCNVector3(-.pi / 2, 0.0, 0.0)
-        // shadow settings
-        lightNode.light!.castsShadow = true
-        lightNode.light!.shadowMapSize = CGSize(width:2048, height:2048)
-        lightNode.light!.shadowMode = .forward
-        lightNode.light!.shadowSampleCount = 128 * 2
-        lightNode.light!.shadowRadius = 2
-        lightNode.light!.shadowBias = 32 * 2
         
         self.gameScene.rootNode.addChildNode(lightNode)
         
@@ -152,7 +147,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         ambientLightNode.light!.color = UIColor.white
         ambientLightNode.light!.intensity = 800
         self.gameScene.rootNode.addChildNode(ambientLightNode)
-        
     }
     
     func setupCamera()
@@ -388,10 +382,28 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         // vec3 camPos
         //mat.setValue(NSValue(scnVector3: cameraNode.position), forKey: "camPos")
         
+        /*
         grassTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
         waterTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
         treeTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
         rockTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
+         */
+        //timer -= Float(seconds)
+        
+        let deltaTime = time - prevTime
+        
+        timer -= deltaTime
+        
+        if (timer < 0.0)
+        {
+            print("scroll")
+            let move = SCNVector3(2.0, 0.0, 0.0)
+            playerPos += move
+            curLevel!.spotLightUpdate(pos: playerPos, rad: 80)
+            curLevel!.scrollLevel(move: move)
+            timer = 0.5
+        }
+        prevTime = time
     }
     
     /// Movement logic for player to be used in update loop

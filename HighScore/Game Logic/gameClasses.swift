@@ -450,6 +450,7 @@ class tree: Tile
     var obj: SCNNode?
     var canWalk: Bool = false
     var originalColors: UIImage?
+    var baseYAngle: Float = 0.0
     
     required init()
     {
@@ -520,6 +521,7 @@ class tree: Tile
         treeMat.lightingModel = SCNMaterial.LightingModel.phong
         treeMat.diffuse.contents = self.originalColors
         treeMat.shaderModifiers = [SCNShaderModifierEntryPoint.fragment: treeColorModifier]
+        treeMat.setValue(NSNumber(value: self.freshness), forKey: "freshness")
         
         // loading tree and adding material
         let treeNode = treeScene!.rootNode.childNode(withName: "Tree", recursively: true)!
@@ -550,7 +552,7 @@ class tree: Tile
         let remappedAmount = (amount * 0.8) + 0.2
         
         treeNode?.scale = SCNVector3(remappedAmount, remappedAmount, remappedAmount)
-        treeNode?.eulerAngles.y = .pi * amount
+        treeNode?.eulerAngles.y = .pi * amount + baseYAngle
         
         treeNode?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
     }
@@ -577,6 +579,12 @@ class tree: Tile
         self.obj?.childNode(withName: "TreeGrass", recursively: true)?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
         treeFreshness(amount: self.freshness)
     }
+    
+    func addBaseAngle(amount: Float)
+    {
+        self.baseYAngle += amount
+        self.obj?.childNode(withName: "Tree", recursively: true)?.eulerAngles.y += amount
+    }
 }
 
 class rock: Tile
@@ -584,6 +592,7 @@ class rock: Tile
     var freshness: Float = 1.0
     var obj: SCNNode?
     var canWalk: Bool = false
+    var baseYAngle: Float = 0.0
     
     required init()
     {
@@ -626,7 +635,7 @@ class rock: Tile
         
         let remappedFreshness = floor((amount * amount) * 10.0) / 10.0
         rock?.scale = SCNVector3(remappedFreshness, remappedFreshness, remappedFreshness)
-        rock?.eulerAngles.y = remappedFreshness * .pi
+        rock?.eulerAngles.y = remappedFreshness * .pi + baseYAngle
     }
     
     func setFreshness(amount: Float)
@@ -658,10 +667,17 @@ class rock: Tile
             self.canWalk = false
         }
     }
+    
+    func addBaseAngle(amount: Float)
+    {
+        self.baseYAngle += amount
+        self.obj?.childNode(withName: "Rock", recursively: true)?.eulerAngles.y += amount
+    }
 }
 
 //HELPER FUNCTIONS
 
+/*
 // I would make these the same function, but because of how often these are called, I want to save performance
 // returns tile at given point and below given point
 private func doubleTileLookup(curLevel: Level, pos: SCNVector3) -> [Tile]
@@ -715,13 +731,13 @@ private func doubleTileLookup(curLevel: Level, pos: SCNVector3) -> [Tile]
         }
     }
     return [air(), air()]
-}
-
+}*/
+/*
 /// This just saves performance to have both of these methods. Checks tile on given point
 private func singleTileLookup(curLevel: Level, pos: SCNVector3) -> Tile
 {
-    let tiles = curLevel.getTiles()
-    let size = curLevel.getLevelSize()
+    let tiles = curLevel.tiles
+    let size = [20, 20, 1]
     let width = size[0]
     let height = size[2]
     // Making sure we do not go off the top
@@ -753,6 +769,7 @@ private func singleTileLookup(curLevel: Level, pos: SCNVector3) -> Tile
     }
     return air()
 }
+ */
 
 /// Function that determines if an entity can make a given move
 ///
@@ -766,7 +783,7 @@ private func singleTileLookup(curLevel: Level, pos: SCNVector3) -> Tile
 ///  - Returns:Whether or not the given entity can move to that given point
 private func canMove(moveLoc: SCNVector3, curLevel: Level) -> Bool
 {
-    
+    /*
     let targetTiles: [Tile] = doubleTileLookup(curLevel: curLevel, pos: moveLoc)
     let lowerTile = targetTiles[0]
     let upperTile = targetTiles[1]
@@ -775,6 +792,8 @@ private func canMove(moveLoc: SCNVector3, curLevel: Level) -> Bool
     let upper : Bool = true
     
     return lower && upper
+     */
+    return true
 }
 
 /// Compares two floating point numbers with a threshold

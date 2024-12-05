@@ -11,85 +11,216 @@ import SceneKit
 
 class Level
 {
-    private var tiles: [Tile] = []
+    // this is the map of the level. This will never change
+    private var tileIndices: [Int] = [1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1,
+                                      1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1,
+                                      4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 3, 1, 1, 1, 4, 4,
+                                      4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4,
+                                      4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 4, 4, 4,
+                                      4, 4, 4, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4,
+                                      4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4,
+                                      4, 4, 1, 1, 4, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 4, 4,
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      4, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1,
+                                      1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 1, 1, 4, 4,
+                                      1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 4, 4,]
+    public var tiles: [[Tile]] = []
     public var gameScene: SCNScene
     public var gameView: SCNView
-    // Width, Length, Height
-    private var levelSize: [Int] = [1, 1, 1]
     // 0 is air, 1 is grass, 2 is water, 3 is tree, 4 is rock
-    private var tileArray: [Tile] = []
+    private var tileArray: [() -> Tile] = [air.init, grass.init, water.init, tree.init, rock.init]
     private var lights: [SCNNode] = []
     
-    func replaceIndex(pos: SCNVector3, replacement: Int, index: Int)
+    init(gameView: SCNView)
     {
-        let newBlock = air()
-        
-        if let oldObject = self.tiles[index].obj
-        {
-            oldObject.runAction(SCNAction.scale(to: 1.5, duration: 0.3), completionHandler:{() -> Void in
-                oldObject.removeFromParentNode()})
-        }
-        
-        self.tiles[index] = newBlock
-        if let object = newBlock.obj
-        {
-            object.scale = SCNVector3(x: 0.1, y: 0.1, z: 0.1)
-            object.position = pos
-            self.gameView.scene!.rootNode.addChildNode(object)
-            object.runAction(SCNAction.scale(to: 1.0, duration: 0.3))
-        }
-    }
-    
-    func getTiles() -> [Tile]
-    {
-        return self.tiles
-    }
-    
-    init(file: String, height: Int, gameView: SCNView)
-    {
-        
         self.gameScene = SCNScene()
         self.gameView = gameView
-        // To let the sky influence the lighting:
-        self.gameScene.lightingEnvironment.contents = self.gameScene.background.contents
         
-        self.lights = []
-        self.tiles = []
+        buildLights()
+        buildTiles()
     }
     
-    func getLevelSize() -> [Int]
+    func buildTiles()
     {
-        return levelSize
-    }
-    
-    func buildLights(data: [SCNNode]) -> [SCNNode]
-    {
-        for light in data
+        for i in 0...19
         {
-            gameScene.rootNode.addChildNode(light)
+            var row: [Tile] = []
+            
+            for j in 0...19
+            {
+                let tileIndex = tileIndices[(i * 20) + j]
+                
+                let tile = tileArray[tileIndex]()
+                
+                if (tileIndex == 3)
+                {
+                    (tile as! tree).addBaseAngle(amount: Float(i).truncatingRemainder(dividingBy: 3.0) * .pi)
+                }
+                else if (tileIndex == 4)
+                {
+                    (tile as! rock).addBaseAngle(amount: Float(i).truncatingRemainder(dividingBy: 3.0) * .pi)
+                }
+                
+                let posX = j * 2 - 19
+                let posZ = i * 2 - 19
+                
+                tile.obj?.position = SCNVector3(posX, 0, posZ)
+                
+                row.append(tile)
+                self.gameScene.rootNode.addChildNode(tile.obj!)
+            }
+            
+            self.tiles.append(row)
+        }
+    }
+    
+    func buildLights()
+    {
+        
+        let lightNode = SCNNode()
+        lightNode.light = SCNLight()
+        lightNode.light!.type = .directional
+        lightNode.light!.intensity = 1200
+        lightNode.eulerAngles = SCNVector3(-.pi / 2, 0.0, 0.0)
+        
+        self.gameScene.rootNode.addChildNode(lightNode)
+        
+        // create and add an ambient light to the scene
+        let ambientLightNode = SCNNode()
+        ambientLightNode.light = SCNLight()
+        ambientLightNode.light!.type = .ambient
+        ambientLightNode.light!.color = UIColor.white
+        ambientLightNode.light!.intensity = 1100
+        self.gameScene.rootNode.addChildNode(ambientLightNode)
+        
+        self.lights = [lightNode, ambientLightNode]
+    }
+    
+    //TODO: "Spotlight," effect, to improve graphics. Only circle around player will be rendered. All other nodes will be hidden. NOTE: requires tileLookup
+    func spotLightUpdate(pos: SCNVector3, rad: Float)
+    {
+        let squaredRad = rad * rad
+        
+        // loop through all blocks
+        for i: Int in 0...(tiles.count - 1)
+        {
+            let row = tiles[i]
+            
+            for j: Int in 0...(row.count - 1)
+            {
+                // get squared dist to block
+                let curTile = tiles[i][j].obj!
+                let curPos = curTile.position
+                let squaredDist = pow((curPos.x - pos.x), 2.0) + pow((curPos.z - pos.z), 2.0)
+                
+                // check if block is in radius
+                if (rad > squaredDist)
+                {
+                    // yes, set active
+                    curTile.isHidden = false
+                    
+                }
+                else
+                {
+                    // no, set inactive
+                    curTile.isHidden = true
+                    
+                }
+            }
+        }
+    }
+    
+    // tiles array gets flipped, but graphically we just move forward
+    // 1 -> index 0 moves to 19
+    // -1 -> index 19 moves to 0
+    // 0 -> nothing happens
+    // only one direction at a time, so will return after one move
+    func scrollLevel(move: SCNVector3)
+    {
+        if (abs(move.x) > 0.1)
+        {
+            for i: Int in 0...(tiles.count - 1)
+            {
+                let row = tiles[i]
+                
+                let leftMost = row[0]
+                let rightMost = row[row.count - 1]
+                
+                if (move.x > 0.1)
+                {
+                    // get leftmost index, move to right
+                    leftMost.obj!.position = rightMost.obj!.position + SCNVector3(2.0, 0.0, 0.0)
+                    // remove leftmost index, place at end
+                    tiles[i].remove(at: 0)
+                    tiles[i].append(leftMost)
+                }
+                else
+                {
+                    // get rightmost index, move to left
+                    rightMost.obj!.position = leftMost.obj!.position + SCNVector3(-2.0, 0.0, 0.0)
+                    // remove last index, insert at beginning
+                    tiles[i].remove(at: row.count - 1)
+                    tiles[i].insert(rightMost, at: 0)
+                }
+            }
+            
+            return
         }
         
-        return data
+        if (abs(move.z) > 0.1)
+        {
+            let topMost = tiles[0]
+            let bottomMost = tiles[tiles.count - 1]
+            
+            for i: Int in 0...(topMost.count - 1)
+            {
+                
+                if (move.z > 0.1)
+                {
+                    let curBot = bottomMost[i]
+                    topMost[i].obj!.position = curBot.obj!.position + SCNVector3(0.0, 0.0, 2.0)
+                }
+                else
+                {
+                    let curTop = topMost[i]
+                    bottomMost[i].obj!.position = curTop.obj!.position + SCNVector3(0.0, 0.0, -2.0)
+                }
+            }
+            
+            if (move.z > 0.1)
+            {
+                // moving south, remove first row, and insert at end
+                tiles.remove(at: 0)
+                tiles.append(topMost)
+            }
+            else
+            {
+                // moving north, remove last row, and insert at index 0
+                tiles.remove(at: tiles.count - 1)
+                tiles.insert(bottomMost, at: 0)
+            }
+            
+            return
+        }
     }
     
-    func buildTiles(map: [String], tileIDs: [Int], height: Int) -> [Tile]
-    {
-        var tiles: [Tile] = []
-        
-        let width = self.levelSize[0]
-        let length = self.levelSize[1]
-        self.levelSize[2] = height
-        
-        return tiles
-    }
-    
-    func readData(text: String) -> [String]
+    //TODO: parse csv file for freshness numbers
+    func readFreshness(text: String) -> [String]
     {
         return text.components(separatedBy: ",")
     }
 }
 
 //Helper Functions
+
 // Input file name, return text in file
 public func readTextFile(_ fileName: String) -> String
 {
@@ -105,4 +236,10 @@ public func readTextFile(_ fileName: String) -> String
     }
 
     return text
+}
+
+// TODO: write to text file, send email??
+public func updateTextFile(_ fileName: String, contents: String)
+{
+    
 }
