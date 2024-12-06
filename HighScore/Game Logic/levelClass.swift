@@ -241,5 +241,36 @@ public func readTextFile(_ fileName: String) -> String
 // TODO: write to text file, send email??
 public func updateTextFile(_ fileName: String, contents: String)
 {
-    
+    /*
+    var smtpSession = MCOSMTPSession()
+    smtpSession.hostname = "smtp.gmail.com"
+    smtpSession.username = "matt@gmail.com"
+    smtpSession.password = "xxxxxxxxxxxxxxxx"
+    smtpSession.port = 465
+    smtpSession.authType = MCOAuthType.SASLPlain
+    smtpSession.connectionType = MCOConnectionType.TLS
+    smtpSession.connectionLogger = {(connectionID, type, data) in
+        if data != nil {
+            if let string = NSString(data: data, encoding: NSUTF8StringEncoding){
+                NSLog("Connectionlogger: \(string)")
+            }
+        }
+    }
+
+    var builder = MCOMessageBuilder()
+    builder.header.to = [MCOAddress(displayName: "Rool", mailbox: "itsrool@gmail.com")]
+    builder.header.from = MCOAddress(displayName: "Matt R", mailbox: "matt@gmail.com")
+    builder.header.subject = "My message"
+    builder.htmlBody = "Yo Rool, this is a test message!"
+
+    let rfc822Data = builder.data()
+    let sendOperation = smtpSession.sendOperationWithData(rfc822Data)
+    sendOperation.start { (error) -> Void in
+        if (error != nil) {
+            NSLog("Error sending email: \(error)")
+        } else {
+            NSLog("Successfully sent email!")
+        }
+    }
+     */
 }

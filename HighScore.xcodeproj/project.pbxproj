@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0545F1AE2D02B11B00713E02 /* robot.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1AD2D02B11B00713E02 /* robot.dae */; };
+		0545F1B02D02BC3700713E02 /* robotActions.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1AF2D02BC3700713E02 /* robotActions.dae */; };
 		056A2B812D000454003DD649 /* waterOLD.dae in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B802D000454003DD649 /* waterOLD.dae */; };
 		056A2B832D0006B0003DD649 /* seamlessNoise.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B822D0006B0003DD649 /* seamlessNoise.png */; };
 		056A2B862D0020AD003DD649 /* brightWater.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B842D0020AC003DD649 /* brightWater.png */; };
@@ -40,6 +42,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0545F1AD2D02B11B00713E02 /* robot.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; name = robot.dae; path = ../../../../../Desktop/CapstoneVideoGameModels/robot.dae; sourceTree = "<group>"; };
+		0545F1AF2D02BC3700713E02 /* robotActions.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = robotActions.dae; sourceTree = "<group>"; };
 		056A2B802D000454003DD649 /* waterOLD.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = waterOLD.dae; sourceTree = "<group>"; };
 		056A2B822D0006B0003DD649 /* seamlessNoise.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = seamlessNoise.png; sourceTree = "<group>"; };
 		056A2B842D0020AC003DD649 /* brightWater.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = brightWater.png; sourceTree = "<group>"; };
@@ -149,8 +153,8 @@
 				05FFE05A2CE81CB000DDAF65 /* GameViewController.swift */,
 				05CB98D42CE815F500EF1872 /* ViewController.swift */,
 				05CB98D62CE815F500EF1872 /* Main.storyboard */,
-				05CB98D92CE815F600EF1872 /* Assets.xcassets */,
 				05CB98DB2CE815F600EF1872 /* LaunchScreen.storyboard */,
+				05CB98D92CE815F600EF1872 /* Assets.xcassets */,
 				05CB98DE2CE815F600EF1872 /* Info.plist */,
 			);
 			path = HighScore;
@@ -164,6 +168,8 @@
 				056A2B922D0031CF003DD649 /* water.dae */,
 				05FFE0682CED861100DDAF65 /* stars.dae */,
 				056A2BAA2D012A11003DD649 /* tree.dae */,
+				0545F1AD2D02B11B00713E02 /* robot.dae */,
+				0545F1AF2D02BC3700713E02 /* robotActions.dae */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -253,6 +259,8 @@
 				05CB98DD2CE815F600EF1872 /* Base in Resources */,
 				056A2B932D0031CF003DD649 /* water.dae in Resources */,
 				056A2BA42D00EB2A003DD649 /* darkWaterBigger.png in Resources */,
+				0545F1AE2D02B11B00713E02 /* robot.dae in Resources */,
+				0545F1B02D02BC3700713E02 /* robotActions.dae in Resources */,
 				05CB98D82CE815F500EF1872 /* Base in Resources */,
 				056A2BAF2D013C05003DD649 /* rock.dae in Resources */,
 				056A2BA92D012A0B003DD649 /* rockDirt.png in Resources */,
