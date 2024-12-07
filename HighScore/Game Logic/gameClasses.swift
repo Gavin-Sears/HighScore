@@ -129,13 +129,12 @@ class MainPlayer: Entity
                 // y
                 if (turn.z > 0.0)
                 {
-                    // towards??
-                    print("towards")
+                    // towards
                     self.obj.eulerAngles.y = .pi
                 }
                 else
                 {
-                    // away??
+                    // away
                     self.obj.eulerAngles.y = 0.0001
                 }
             }
@@ -184,9 +183,12 @@ class MainPlayer: Entity
         {
             // we turn regardless of if we can move
             turn(turn: movement)
+            //print("this is movement")
+            //print(movement)
             // check to see if we have a valid move
             if (curLevel!.canMove(movement: movement))
             {
+                //print(self.obj.position)
                 moveAnim(movement: movement * 2.0)
             }
         }
@@ -211,8 +213,9 @@ class MainPlayer: Entity
                 {() -> Void in
                     self.isMoving = false
                     self.updateAnims()
-                    self.curLevel!.spotLightUpdate(pos: self.obj.position, rad: 5)
+                    //self.curLevel!.spotLightUpdate(pos: self.obj.position, rad: 5)
                     self.curLevel!.scrollLevel(move: movement)
+                    self.correctLoc()
                 })
     }
     
@@ -272,8 +275,7 @@ class MainPlayer: Entity
     /// Rounds player position to avoid drifting
     func correctLoc()
     {
-        let correctLoc = roundPos(pos: self.obj.position)
-        self.obj.runAction(SCNAction.move(to: correctLoc, duration: TimeInterval(0)))
+        self.obj.position = roundPos(pos: self.obj.position)
     }
     
     /// Returns whether or not the player is currently moving

@@ -223,7 +223,10 @@ class Level
     // so we can always check from there
     func searchTiles(movement: SCNVector3) -> Tile
     {
-        return tiles[9 + Int(movement.x)][10 + Int(movement.z)]
+        print("theTile pos")
+        print(tiles[10 + Int(movement.z)][10 + Int(movement.x)].obj!.position)
+        //print(tiles[10][10].obj!.position)
+        return tiles[10 + Int(movement.z)][10 + Int(movement.x)]
     }
     
     //TODO: parse csv file for freshness numbers

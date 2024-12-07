@@ -26,7 +26,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     private var cameraNode: SCNNode = SCNNode()
     private var camTracks: Bool = true
     private let camPos: SCNVector3 = SCNVector3(x: 2.0, y: 24.0, z: -2.0)
-    private let relCamPos: SCNVector3 = SCNVector3(x: 0.0, y: 12.0, z: 4.0)
+    private let relCamPos: SCNVector3 = SCNVector3(x: 0.0, y: 36.0, z: 4.0)
     
     // Update loop
     private var curTime: TimeInterval = 0
@@ -94,7 +94,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         //setupSky()
         //self.curLevel!.gameScene.rootNode.addChildNode(skyNode)
         
-        self.player = MainPlayer(moveSpeed: 1.0, curLevel: self.curLevel!)
+        self.player = MainPlayer(moveSpeed: 3.0, curLevel: self.curLevel!)
         //player!.obj.position = SCNVector3(1.0, 0.0, 1.0)
         setupCamera()
         //player!.obj.addChildNode(self.cameraNode)
@@ -522,8 +522,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
                                 
                                 if (sumDiff > self.gameViewController!.swipeLength)
                                 {
-                                    print("swipe")
-                                    
                                     if (absX > absY)
                                     {
                                         // horizontal movement
@@ -533,7 +531,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
                                     {
                                         // vertical movement
                                         move = SCNVector3(0.0, 0.0, -diffY / absY)
-                                        print(move)
                                     }
                                     
                                     self.gameViewController!.player!.move(movement: move)
@@ -554,7 +551,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
                     if let finger = finger, finger == touch {
                         fingers[index] = nil
                         self.gameViewController!.fingerDown = false
-                        print("touches ended")
                         break
                     }
                 }
