@@ -25,8 +25,16 @@ class MainPlayer: Entity
     // robot mesh node (child of armature)
     var robotNode: SCNNode
     
+    // stupid workaround
+    var armNode: SCNNode
+    
     // material for screen that displays things
     var screenMat: SCNMaterial
+    
+    // images for screen
+    var smiley: UIImage = UIImage(named: "Smiley.png")!
+    var forward: UIImage = UIImage(named: "Forward.png")!
+    var mining: UIImage = UIImage(named: "Mining.png")!
     
     // checking if animation is playing (costs less than checking keys)
     var isIdle: Bool = false
@@ -54,7 +62,7 @@ class MainPlayer: Entity
         let robotScene = SCNScene(named:"robot.dae")!
         self.obj = robotScene.rootNode.childNode(withName: "Armature", recursively: true)!
         self.obj.position = SCNVector3(1.0, 3.0, 1.0)
-        self.obj.scale = SCNVector3(0.5, 0.5, 0.5)
+        self.obj.scale = SCNVector3(0.3, 0.3, 0.3)
         self.obj.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
         self.rootBone = self.obj.childNode(withName: "Root", recursively: true)!
         self.rootBone.position = SCNVector3(0.0, 0.0, 0.0)
@@ -64,6 +72,13 @@ class MainPlayer: Entity
         self.robotNode.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
         
         let roboGeo = robotNode.geometry!
+        
+        //stupid workaround because drill arm is not working
+        self.armNode = self.rootBone.childNode(withName: "Arm1", recursively: true)!
+        self.armNode.eulerAngles = SCNVector3((-.pi / 2.0) - 0.3, 0.0, 0.0)
+        let arm2Node = self.armNode.childNode(withName: "Arm2", recursively: true)!
+        arm2Node.eulerAngles = SCNVector3(0.3, 0.0, 0.0)
+        self.armNode.scale = SCNVector3(0.0, 0.0, 0.0)
         
         // drill - set metal to 1.0, roughness to map
         let drillMat = roboGeo.materials[1]
@@ -80,17 +95,21 @@ class MainPlayer: Entity
         self.idleAnimPlayer.animation.isRemovedOnCompletion = false
         self.idleAnimPlayer.animation.blendInDuration = 0.001
         self.idleAnimPlayer.paused = true
+        self.idleAnimPlayer.play()
         
         // walkAnimPlayer
         self.moveAnimPlayer = SCNAnimationPlayer.loadAnimation(fromSceneNamed: "robotMove.dae")
         self.moveAnimPlayer.animation.isRemovedOnCompletion = false
-        self.idleAnimPlayer.animation.blendInDuration = 0.001
+        self.moveAnimPlayer.animation.blendInDuration = 0.001
+        self.moveAnimPlayer.speed = CGFloat(moveSpeed)
         self.moveAnimPlayer.paused = true
+        //self.moveAnimPlayer.play()
         
         // mineAnimPlayer
         self.drillAnimPlayer = SCNAnimationPlayer.loadAnimation(fromSceneNamed: "robotDrill.dae")
         self.drillAnimPlayer.animation.isRemovedOnCompletion = false
         self.drillAnimPlayer.paused = true
+        //self.drillAnimPlayer.play()
         
         self.obj.addAnimationPlayer(self.idleAnimPlayer, forKey: "Idle")
         self.obj.addAnimationPlayer(self.moveAnimPlayer, forKey: "Move")
@@ -228,9 +247,11 @@ class MainPlayer: Entity
             {
                 // initiate move animation
                 stopAllAnims(withBlendOutDuration: 0.01)
-                self.moveAnimPlayer.paused = false
-                self.moveAnimPlayer.play()
+                self.drillAnimPlayer.paused = false
+                self.drillAnimPlayer.play()
                 self.isMove = true
+                self.armNode.scale = SCNVector3(1.0, 1.0, 1.0)
+                screenMat.emission.contents = self.mining
             }
         }
         else if (isMoving)
@@ -243,6 +264,8 @@ class MainPlayer: Entity
                 self.moveAnimPlayer.paused = false
                 self.moveAnimPlayer.play()
                 self.isMove = true
+                self.armNode.scale = SCNVector3(0.0, 0.0, 0.0)
+                self.screenMat.emission.contents = self.forward
             }
         }
         else
@@ -255,6 +278,8 @@ class MainPlayer: Entity
                 self.idleAnimPlayer.paused = false
                 self.idleAnimPlayer.play()
                 self.isIdle = true
+                self.armNode.scale = SCNVector3(0.0, 0.0, 0.0)
+                self.screenMat.emission.contents = self.smiley
             }
         }
     }

@@ -66,7 +66,7 @@ class Level
                 }
                 else if (tileIndex == 4)
                 {
-                    (tile as! rock).addBaseAngle(amount: Float(i).truncatingRemainder(dividingBy: 3.0) * .pi)
+                    //(tile as! rock).addBaseAngle(amount: Float(i).truncatingRemainder(dividingBy: 3.0) * .pi)
                 }
                 
                 let posX = j * 2 - 19
@@ -223,9 +223,6 @@ class Level
     // so we can always check from there
     func searchTiles(movement: SCNVector3) -> Tile
     {
-        print("theTile pos")
-        print(tiles[10 + Int(movement.z)][10 + Int(movement.x)].obj!.position)
-        //print(tiles[10][10].obj!.position)
         return tiles[10 + Int(movement.z)][10 + Int(movement.x)]
     }
     

@@ -26,7 +26,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     private var cameraNode: SCNNode = SCNNode()
     private var camTracks: Bool = true
     private let camPos: SCNVector3 = SCNVector3(x: 2.0, y: 24.0, z: -2.0)
-    private let relCamPos: SCNVector3 = SCNVector3(x: 0.0, y: 36.0, z: 4.0)
+    private let relCamPos: SCNVector3 = SCNVector3(x: 0.0, y: 12.0, z: 4.0)
     
     // Update loop
     private var curTime: TimeInterval = 0
@@ -482,7 +482,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
                                 fingers[index] = touch
                                 self.firstInput = point
                                 self.gameViewController!.fingerDown = true
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2)
                                 {
                                     if (self.gameViewController!.fingerDown)
                                     {
