@@ -16,9 +16,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     
     // Loading Screen info
     public var presentingController: UIViewController?
-    public var goAgain: Bool = false
-    public var levelName: String = ""
-    public var height: Int = 2
     
     // Scenes and Views
     private var gameView: SCNView!
@@ -27,9 +24,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     
     // Camera
     private var cameraNode: SCNNode = SCNNode()
-    private var camTracks: Bool = false
+    private var camTracks: Bool = true
     private let camPos: SCNVector3 = SCNVector3(x: 2.0, y: 24.0, z: -2.0)
-    private let relCamPos: SCNVector3 = SCNVector3(x: 0, y: 24, z: -28)
+    private let relCamPos: SCNVector3 = SCNVector3(x: 0.0, y: 12.0, z: -2.0)
     
     // Update loop
     private var curTime: TimeInterval = 0
@@ -42,6 +39,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     public var win: Bool = false
     public var lose: Bool = false
     
+    // stuff that should probably be deleted before I'm done
     public var mat: SCNMaterial = SCNMaterial()
     public var waterMat: SCNMaterial = SCNMaterial()
     public var modelMat: SCNMatrix4 = SCNMatrix4()
@@ -61,6 +59,15 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     public var prevTime: TimeInterval = 999.0
     
     public var skyNode: SCNNode = SCNNode()
+    public var player: MainPlayer?
+    
+    // controls variables
+    // how far you have to swipe to swipe
+    public var swipeLength: CGFloat = 0.1
+    // how long you have to hold tap to drill
+    // MUST BE UPDATED IN UI FOR SOME REASON
+    // if you are currently holding
+    public var fingerDown: Bool = false
     
     // Beginning functions
     override func viewDidLoad() {
@@ -78,75 +85,43 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         gameView.isPlaying = true
         gameView.loops = true // if render loop stops again
         //gameView.rendersContinuously = true // change if issues
-        gameView.allowsCameraControl = true
+        //gameView.allowsCameraControl = true
         gameView.showsStatistics = true
         gameView.backgroundColor = UIColor.black
         
         self.curLevel = Level(gameView: self.gameView)
+        //self.curLevel!.gameScene.rootNode.addChildNode(self.cameraNode)
+        //setupSky()
+        //self.curLevel!.gameScene.rootNode.addChildNode(skyNode)
         
-        // gameView.frame.size
-         
-        // create a new scene
-        //setupNodes()
+        self.player = MainPlayer(moveSpeed: 1.0, curLevel: self.curLevel!)
+        //player!.obj.position = SCNVector3(1.0, 0.0, 1.0)
+        setupCamera()
+        //player!.obj.addChildNode(self.cameraNode)
+        self.curLevel!.gameScene.rootNode.addChildNode(player!.obj)
+        
+        setupUI()
         
         // set the scene to the view
         gameView.scene = curLevel!.gameScene
+        
+        // gameView.frame.size
     }
     
-    // MOST IMPORTANT METHOD
-    /// Populating game scene and UI scene with nodes
-    func setupNodes()
+    func setupUI()
     {
-        setupCamera()
+        let screenSize = self.gameView.bounds.size
         
-        self.gameScene = SCNScene()
+        self.UIScene = SKScene(size: CGSize(width: screenSize.width, height: screenSize.height))
+        self.UIScene.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
-        //setupGrass()
+        let swipeArea = SwipeZone(imageNamed: "transparent")
+        swipeArea.gameViewController = self
+        swipeArea.scale(to: CGSize(width: screenSize.width, height: screenSize.height))
         
-        /*
-        grassTile = grass()
-        grassTile.obj!.position += SCNVector3(1.0, 0.0, 0.0)
-        self.gameScene.rootNode.addChildNode(grassTile.obj!)
+        self.UIScene.addChild(swipeArea)
         
-        //setupWater()
-        waterTile = water()
-        waterTile.obj!.position += SCNVector3(-1.0, 0.0, 0.0)
-        self.gameScene.rootNode.addChildNode(waterTile.obj!)
-        
-        treeTile = tree()
-        treeTile.obj!.position += SCNVector3(3.0, 0.0, 0.0)
-        self.gameScene.rootNode.addChildNode(treeTile.obj!)
-        
-        rockTile = rock()
-        rockTile.obj!.position += SCNVector3(5.0, 0.0, 0.0)
-        self.gameScene.rootNode.addChildNode(rockTile.obj!)
-         */
-        
-        setupSky()
-        setupLights()
-        
-        self.gameScene.rootNode.addChildNode(self.cameraNode)
-    }
-    
-    func setupLights()
-    {
-        // create and add a light to the scene
-        
-        let lightNode = SCNNode()
-        lightNode.light = SCNLight()
-        lightNode.light!.type = .directional
-        lightNode.light!.intensity = 1000
-        lightNode.eulerAngles = SCNVector3(-.pi / 2, 0.0, 0.0)
-        
-        self.gameScene.rootNode.addChildNode(lightNode)
-        
-        // create and add an ambient light to the scene
-        let ambientLightNode = SCNNode()
-        ambientLightNode.light = SCNLight()
-        ambientLightNode.light!.type = .ambient
-        ambientLightNode.light!.color = UIColor.white
-        ambientLightNode.light!.intensity = 800
-        self.gameScene.rootNode.addChildNode(ambientLightNode)
+        self.gameView.overlaySKScene = self.UIScene
     }
     
     func setupCamera()
@@ -161,11 +136,14 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         // self.gameScene.rootNode.addChildNode(self.cameraNode)
         
         // place the camera
-        self.cameraNode.position = self.camPos
+        self.cameraNode.position = self.relCamPos + player!.obj.position
         //globeNode.position = self.camPos
-        self.cameraNode.eulerAngles = SCNVector3(x: -.pi / 2, y: .pi, z: 0.0)
+        self.cameraNode.eulerAngles = SCNVector3(x: -.pi / 2.0, y: 0.0, z: 0.0)
+        
+        curLevel!.gameScene.rootNode.addChildNode(self.cameraNode)
     }
     
+    /*
     func setupWater()
     {
         let waterModifier = """
@@ -235,7 +213,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         self.gameScene.rootNode.addChildNode(waterCopy)
         
     }
+     */
     
+    /*
     func setupGrass()
     {
         /*
@@ -335,6 +315,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         
        self.gameScene.rootNode.addChildNode(copyGrass)
     }
+    */
     
     // get revesed normals, make as skybox
     func setupSky()
@@ -353,8 +334,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         sphereMat.lightingModel = SCNMaterial.LightingModel.constant
         
         skyNode.geometry?.materials = [sphereMat]
-        
-        //self.gameScene.rootNode.addChildNode(skyNode)
     }
     
     override var prefersStatusBarHidden: Bool {
@@ -371,6 +350,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval)
     {
+        cameraNode.position = player!.obj.position + self.relCamPos
         //cameraNode.position = SCNVector3(cameraNode.position.x, cameraNode.position.y, cameraNode.position.z + 0.03 * sin(Float(time)))
         skyNode.position = cameraNode.position
         // mat4 modelMat
@@ -389,7 +369,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         rockTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
          */
         //timer -= Float(seconds)
-        
+        /*
         let deltaTime = time - prevTime
         
         timer -= deltaTime
@@ -399,11 +379,12 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
             print("scroll")
             let move = SCNVector3(2.0, 0.0, 0.0)
             playerPos += move
-            curLevel!.spotLightUpdate(pos: playerPos, rad: 80)
+            curLevel!.spotLightUpdate(pos: playerPos, rad: 5)
             curLevel!.scrollLevel(move: move)
             timer = 0.5
         }
         prevTime = time
+         */
     }
     
     /// Movement logic for player to be used in update loop
@@ -465,6 +446,148 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
             }
         }
          */
+    }
+    
+    class SwipeZone: SKSpriteNode
+    {
+        var gameViewController: GameViewController?
+        
+        var firstInput: CGPoint = CGPoint(x: 0.0, y: 0.0)
+        
+        override var isUserInteractionEnabled: Bool
+        {
+            set
+            {
+                // ignore
+            }
+            get
+            {
+                return true
+            }
+        }
+        
+        var fingers = [UITouch?](repeating: nil, count:5)
+
+        override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+            if let paused = self.gameViewController?.pause
+            {
+                if !paused
+                {
+                    super.touchesBegan(touches, with: event)
+                    for touch in touches{
+                        let point = touch.location(in: self)
+                        for (index,finger)  in self.fingers.enumerated() {
+                            if finger == nil {
+                                fingers[index] = touch
+                                self.firstInput = point
+                                self.gameViewController!.fingerDown = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1)
+                                {
+                                    if (self.gameViewController!.fingerDown)
+                                    {
+                                        print("drill")
+                                        self.gameViewController!.player!.drill()
+                                    }
+                                }
+                                //print("finger \(index+1): x=\(point.x) , y=\(point.y)")
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+            if let paused = self.gameViewController?.pause
+            {
+                if !paused
+                {
+                    super.touchesMoved(touches, with: event)
+                    for touch in touches {
+                        let point = touch.location(in: self)
+                        for (_,finger) in self.fingers.enumerated() {
+                            if let finger = finger, finger == touch {
+                                // print("finger \(index+1): x=\(point.x) , y=\(point.y)")
+                                self.gameViewController!.fingerDown = false
+                                var move: SCNVector3 = SCNVector3(0.0, 0.0, 0.0)
+                                
+                                let diffX = point.x - self.firstInput.x
+                                let diffY = point.y - self.firstInput.y
+                                let sumDiff = abs(diffX) + abs(diffY)
+                                
+                                if (sumDiff > self.gameViewController!.swipeLength)
+                                {
+                                    print("swipe")
+                                    let absX = abs(diffX)
+                                    let absY = abs(diffY)
+                                    
+                                    if (absX > absY)
+                                    {
+                                        // horizontal movement
+                                        move = SCNVector3(diffX / absX, 0.0, 0.0)
+                                    }
+                                    else
+                                    {
+                                        // vertical movement
+                                        move = SCNVector3(0.0, 0.0, diffY / absY)
+                                    }
+                                    
+                                    self.gameViewController!.player!.move(movement: move)
+                                }
+                                
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+            super.touchesEnded(touches, with: event)
+            for touch in touches {
+                for (index,finger) in self.fingers.enumerated() {
+                    if let finger = finger, finger == touch {
+                        fingers[index] = nil
+                        self.gameViewController!.fingerDown = false
+                        print("touches ended")
+                        break
+                    }
+                }
+            }
+        }
+
+        override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+            super.touchesCancelled(touches, with: event)
+            touchesEnded(touches, with: event)
+        }
+        
+        func countFingers() -> Int
+        {
+            var count: Int = 0
+            for (_,finger) in self.fingers.enumerated()
+            {
+                if finger != nil
+                {
+                    count += 1
+                }
+            }
+            return count
+        }
+        
+        // only if there is one finger
+        func findFingerLocation() -> CGPoint
+        {
+            for (_,finger) in self.fingers.enumerated()
+            {
+                if let finger = finger
+                {
+                    return finger.location(in: self)
+                }
+            }
+            return CGPoint(x: 0, y: 0)
+        }
     }
     
     func togglePause()

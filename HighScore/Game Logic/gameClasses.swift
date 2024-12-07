@@ -18,77 +18,84 @@ class MainPlayer: Entity
 {
     // Basic stats
     var moveSpeed: Float
+    // object in scene (is armature)
     var obj: SCNNode
+    // root bone (child of armature)
+    var rootBone: SCNNode
+    // robot mesh node (child of armature)
+    var robotNode: SCNNode
     
+    // material for screen that displays things
+    var screenMat: SCNMaterial
+    
+    // checking if animation is playing (costs less than checking keys)
     var isIdle: Bool = false
-    var isWalk: Bool = false
-    var isMine: Bool = false
+    var isMove: Bool = false
+    var isDrill: Bool = false
     
-    var allowedToTurn: Bool = true
-    var allowedToMove: Bool = true
-    var allowedToIdle: Bool = true
-    var allowedToAct: Bool = true
-    
-    var idleAnimPlayer: SCNAnimationPlayer?
-    var walkAnimPlayer: SCNAnimationPlayer?
-    var mineAnimPlayer: SCNAnimationPlayer?
+    // animation players
+    var idleAnimPlayer: SCNAnimationPlayer
+    var moveAnimPlayer: SCNAnimationPlayer
+    var drillAnimPlayer: SCNAnimationPlayer
     
     var curLevel: Level?
     
+    // used for keeping rotations clean
     var rotVec: SCNVector3 = SCNVector3(x: 0, y: 0, z: 1)
     
-    // Move logic
-    var isMoving: Bool
-    
-    // Player logic
-    var ability: () -> Void
+    // movement logic
+    var isMoving: Bool = false
+    var isDrilling: Bool = false
     
     init(moveSpeed: Float, curLevel: Level)
     {
         self.curLevel = curLevel
         self.moveSpeed = moveSpeed
-        self.obj = SCNNode()
+        let robotScene = SCNScene(named:"robot.dae")!
+        self.obj = robotScene.rootNode.childNode(withName: "Armature", recursively: true)!
+        self.obj.position = SCNVector3(1.0, 3.0, 1.0)
+        self.obj.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
+        self.rootBone = self.obj.childNode(withName: "Root", recursively: true)!
+        self.rootBone.position = SCNVector3(0.0, 0.0, 0.0)
+        self.rootBone.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
         
-        """
+        self.robotNode = self.obj.childNode(withName: "Robot", recursively: true)!
+        self.robotNode.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
+        
+        let roboGeo = robotNode.geometry!
+        
+        // drill - set metal to 1.0, roughness to map
+        let drillMat = roboGeo.materials[1]
+        drillMat.lightingModel = SCNMaterial.LightingModel.physicallyBased
+        drillMat.metalness.contents = 1.0
+        drillMat.roughness.contents = UIImage(named: "drillRough")
+        
+        // screen - save so I can swap out texture, switch to Smiley
+        self.screenMat = roboGeo.materials[3]
+        self.screenMat.emission.contents = UIImage(named: "Smiley")
+        
         // idleAnimPlayer
-        self.idleAnimPlayer = SCNAnimationPlayer.loadAnimation(fromSceneNamed: "art.scnassets/Characters/Dough_Puncher/Anims/DPIdle.dae")
+        self.idleAnimPlayer = SCNAnimationPlayer.loadAnimation(fromSceneNamed: "robotIdle.dae")
         self.idleAnimPlayer.animation.isRemovedOnCompletion = false
         self.idleAnimPlayer.animation.blendInDuration = 0.001
         self.idleAnimPlayer.paused = true
         
         // walkAnimPlayer
-        self.walkAnimPlayer = SCNAnimationPlayer.loadAnimation(fromSceneNamed: "art.scnassets/Characters/Dough_Puncher/Anims/DPWalk.dae")
-        self.walkAnimPlayer.animation.isRemovedOnCompletion = false
-        self.walkAnimPlayer.paused = true
+        self.moveAnimPlayer = SCNAnimationPlayer.loadAnimation(fromSceneNamed: "robotMove.dae")
+        self.moveAnimPlayer.animation.isRemovedOnCompletion = false
+        self.idleAnimPlayer.animation.blendInDuration = 0.001
+        self.moveAnimPlayer.paused = true
         
         // mineAnimPlayer
-        self.mineAnimPlayer = SCNAnimationPlayer.loadAnimation(fromSceneNamed: "art.scnassets/Characters/Dough_Puncher/Anims/DPWin.dae")
-        self.mineAnimPlayer.animation.isRemovedOnCompletion = false
-        self.mineAnimPlayer.paused = true
-        """
+        self.drillAnimPlayer = SCNAnimationPlayer.loadAnimation(fromSceneNamed: "robotDrill.dae")
+        self.drillAnimPlayer.animation.isRemovedOnCompletion = false
+        self.drillAnimPlayer.paused = true
         
-        """
-        if let arm = self.obj.childNode(withName: "Armature", recursively: true)
-        {
-            arm.addAnimationPlayer(self.idleAnimPlayer, forKey: "Idle")
-            arm.addAnimationPlayer(self.walkAnimPlayer, forKey: "Walk")
-            arm.addAnimationPlayer(self.mineAnimPlayer, forKey: "Mine")
-        }
-        """
+        self.obj.addAnimationPlayer(self.idleAnimPlayer, forKey: "Idle")
+        self.obj.addAnimationPlayer(self.moveAnimPlayer, forKey: "Move")
+        self.obj.addAnimationPlayer(self.drillAnimPlayer, forKey: "Drill")
         
         self.isMoving = false
-        // just to stop the self errors
-        self.ability = {() -> Void in return}
-    }
-    
-    func useAbility()
-    {
-        self.ability()
-    }
-    
-    func noAbility()
-    {
-        self.ability = {() -> Void in return}
     }
     
     /// Function that turns the main player
@@ -100,19 +107,68 @@ class MainPlayer: Entity
     ///   turn towards
     func turn(turn: SCNVector3)
     {
-        if self.allowedToTurn
+        if turn.length > 0.2
         {
-            if turn.length > 0.2
+            if (abs(turn.x) > 0.0)
             {
-                self.rotVec = turn
-                let turnLoc =  self.obj.position + turn + SCNVector3(x:0.0001,y:0,z:0.0001)
-                self.obj.look(at: turnLoc, up: SCNVector3(x: 0, y: 1, z: 0), localFront: SCNVector3(x: 0, y: 0, z: 1))
+                // x
+                if (turn.x > 0.0)
+                {
+                    // right
+                    self.obj.eulerAngles.y = -.pi / 2.0
+                }
+                else
+                {
+                    // left
+                    self.obj.eulerAngles.y = .pi / 2.0
+                }
+            }
+            else
+            {
+                // y
+                if (turn.y > 0.0)
+                {
+                    // towards??
+                    print("towards")
+                    self.obj.eulerAngles.y = .pi
+                }
+                else
+                {
+                    // away??
+                    self.obj.eulerAngles.y = 0.0001
+                }
             }
         }
     }
     
-    /*
-    """
+    func drill()
+    {
+        // can't act if we are moving, or already acting
+        if (!isMoving && !isDrilling)
+        {
+            self.isDrilling = true
+            self.updateAnims()
+            // search for tile in front of player
+            let theTile = air()
+            
+            // lower freshness by value
+            theTile.freshness -= 0.1
+            
+            // checking if freshness if still there, so we can increase score
+            if (theTile.freshness > 0.0)
+            {
+                // increment score
+            }
+            
+            // should be duration of drill animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + drillAnimPlayer.animation.duration)
+            {
+                self.isDrilling = false
+                self.updateAnims()
+            }
+        }
+    }
+    
     /// Function that moves the main player
     ///
     /// Checks if a space is valid to move to, if so turns the character, then moves to the space
@@ -121,20 +177,16 @@ class MainPlayer: Entity
     /// - movement: vector representing the move we would like to make (difference from player position)
     /// - tiles: array of tiles in the stage
     ///
-    func move(movement: SCNVector3, curLevel: Level)
+    func move(movement: SCNVector3)
     {
-        if (!self.isDead && self.allowedToMove)
+        if (!isDrilling && !isMoving)
         {
-            let moveLoc: SCNVector3 = movement + self.obj.position
-            
-            if !self.isMoving
+            // we turn regardless of if we can move
+            turn(turn: movement)
+            // check to see if we have a valid move
+            if (curLevel!.canMove(movement: movement))
             {
-                self.turn(turn: movement)
-                correctLoc()
-                if canMove(moveLoc: moveLoc, curLevel: curLevel)
-                {
-                    self.moveAnim(movement: movement)
-                }
+                moveAnim(movement: movement * 2.0)
             }
         }
     }
@@ -144,55 +196,77 @@ class MainPlayer: Entity
     /// Uses SCNActions to move the player, and uses any animations set beforehand
     ///
     /// - Parameters:
-    ///  - movement: the local coordinate of the position we are moving to
+    ///  - movement: the offset we are moving by
     func moveAnim(movement: SCNVector3)
     {
-        if !self.isWalk || (self.isWalk && self.walkAnimPlayer.paused)
-        {
-            self.stopAllAnims(withBlendOutDuration: 0.2)
-            self.walkAnimPlayer.paused = false
-            self.walkAnimPlayer.play()
-            self.isIdle = false
-            self.isWalk = true
-        }
         self.isMoving = true
+        self.updateAnims()
         self.obj.runAction(
             SCNAction.move(
                 by: movement,
                 duration: TimeInterval((movement.length / moveSpeed))),
-                forKey: "playerMovement",
-                completionHandler: {() -> Void in
-                    self.isMoving = false})
+            forKey: "playerMovement",
+            completionHandler: 
+                {() -> Void in
+                    self.isMoving = false
+                    self.updateAnims()
+                    self.curLevel!.spotLightUpdate(pos: self.obj.position, rad: 5)
+                    self.curLevel!.scrollLevel(move: movement)
+                })
     }
-    """
     
-    """
-    func idleAnim()
+    func updateAnims()
     {
-        // weird issue where acting while moving causes animation freeze
-        if (!self.isIdle && self.allowedToIdle) || (self.isIdle && self.idleAnimPlayer.paused)
+        if (isDrilling)
         {
-            self.isWalk = false
-            self.stopAllAnims(withBlendOutDuration: 0.2)
-            self.idleAnimPlayer.paused = false
-            self.idleAnimPlayer.play()
-            self.isIdle = true
+            // prevent continuous animation start
+            if (!isDrill)
+            {
+                // initiate move animation
+                stopAllAnims(withBlendOutDuration: 0.01)
+                self.moveAnimPlayer.paused = false
+                self.moveAnimPlayer.play()
+                self.isMove = true
+            }
+        }
+        else if (isMoving)
+        {
+            // prevent continuous animation start
+            if (!isMove)
+            {
+                // initiate move animation
+                stopAllAnims(withBlendOutDuration: 0.01)
+                self.moveAnimPlayer.paused = false
+                self.moveAnimPlayer.play()
+                self.isMove = true
+            }
+        }
+        else
+        {
+            // prevent continuous animation start
+            if (!isIdle)
+            {
+                // initiate idle animation
+                stopAllAnims(withBlendOutDuration: 0.01)
+                self.idleAnimPlayer.paused = false
+                self.idleAnimPlayer.play()
+                self.isIdle = true
+            }
         }
     }
-    """
     
-    """
     func stopAllAnims(withBlendOutDuration: TimeInterval)
     {
         self.idleAnimPlayer.stop(withBlendOutDuration: withBlendOutDuration)
         self.idleAnimPlayer.paused = true
-        self.walkAnimPlayer.stop(withBlendOutDuration: withBlendOutDuration)
-        self.walkAnimPlayer.paused = true
-        self.mineAnimPlayer.stop(withBlendOutDuration: withBlendOutDuration)
-        self.mineAnimPlayer.paused = true
+        self.isIdle = false
+        self.moveAnimPlayer.stop(withBlendOutDuration: withBlendOutDuration)
+        self.moveAnimPlayer.paused = true
+        self.isMove = false
+        self.drillAnimPlayer.stop(withBlendOutDuration: withBlendOutDuration)
+        self.drillAnimPlayer.paused = true
+        self.isDrill = false
     }
-    """
-     */
     
     /// Rounds player position to avoid drifting
     func correctLoc()

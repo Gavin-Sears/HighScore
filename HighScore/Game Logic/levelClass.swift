@@ -104,7 +104,7 @@ class Level
         self.lights = [lightNode, ambientLightNode]
     }
     
-    //TODO: "Spotlight," effect, to improve graphics. Only circle around player will be rendered. All other nodes will be hidden. NOTE: requires tileLookup
+    //TODO: Combine spotlight with scroll level so I only have to loop once
     func spotLightUpdate(pos: SCNVector3, rad: Float)
     {
         let squaredRad = rad * rad
@@ -122,7 +122,7 @@ class Level
                 let squaredDist = pow((curPos.x - pos.x), 2.0) + pow((curPos.z - pos.z), 2.0)
                 
                 // check if block is in radius
-                if (rad > squaredDist)
+                if (squaredRad > squaredDist)
                 {
                     // yes, set active
                     curTile.isHidden = false
@@ -210,6 +210,20 @@ class Level
             
             return
         }
+    }
+    
+    // checks if given move will cross a block that player is allowed to move on
+    func canMove(movement: SCNVector3) -> Bool
+    {
+        return searchTiles(movement: movement).canWalk
+    }
+    
+    // finds tile at position, and returns it
+    // player will always be at (1.0, 2.0, 1.0),
+    // so we can always check from there
+    func searchTiles(movement: SCNVector3) -> Tile
+    {
+        return tiles[9 + Int(movement.x)][10 + Int(movement.z)]
     }
     
     //TODO: parse csv file for freshness numbers

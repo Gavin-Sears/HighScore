@@ -7,8 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0545F1AE2D02B11B00713E02 /* robot.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1AD2D02B11B00713E02 /* robot.dae */; };
-		0545F1B02D02BC3700713E02 /* robotActions.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1AF2D02BC3700713E02 /* robotActions.dae */; };
+		0545F1B82D03C1EB00713E02 /* Smiley.png in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1B12D03C1EA00713E02 /* Smiley.png */; };
+		0545F1B92D03C1EB00713E02 /* Forward.png in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1B22D03C1EA00713E02 /* Forward.png */; };
+		0545F1BA2D03C1EB00713E02 /* drillDiffuse.png in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1B32D03C1EA00713E02 /* drillDiffuse.png */; };
+		0545F1BB2D03C1EB00713E02 /* Mining.png in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1B42D03C1EA00713E02 /* Mining.png */; };
+		0545F1BC2D03C1EB00713E02 /* wheelMetal.png in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1B52D03C1EA00713E02 /* wheelMetal.png */; };
+		0545F1BD2D03C1EB00713E02 /* wheelDiffuse.png in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1B62D03C1EA00713E02 /* wheelDiffuse.png */; };
+		0545F1BE2D03C1EB00713E02 /* drillRough.png in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1B72D03C1EB00713E02 /* drillRough.png */; };
+		0545F1CB2D03DDC400713E02 /* robot.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1CA2D03DDC400713E02 /* robot.dae */; };
+		0545F1CF2D03E2F000713E02 /* robotDrill.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1CC2D03E2F000713E02 /* robotDrill.dae */; };
+		0545F1D02D03E2F000713E02 /* robotIdle.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1CD2D03E2F000713E02 /* robotIdle.dae */; };
+		0545F1D12D03E2F000713E02 /* robotMove.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1CE2D03E2F000713E02 /* robotMove.dae */; };
 		056A2B812D000454003DD649 /* waterOLD.dae in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B802D000454003DD649 /* waterOLD.dae */; };
 		056A2B832D0006B0003DD649 /* seamlessNoise.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B822D0006B0003DD649 /* seamlessNoise.png */; };
 		056A2B862D0020AD003DD649 /* brightWater.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B842D0020AC003DD649 /* brightWater.png */; };
@@ -42,8 +51,17 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0545F1AD2D02B11B00713E02 /* robot.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; name = robot.dae; path = ../../../../../Desktop/CapstoneVideoGameModels/robot.dae; sourceTree = "<group>"; };
-		0545F1AF2D02BC3700713E02 /* robotActions.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = robotActions.dae; sourceTree = "<group>"; };
+		0545F1B12D03C1EA00713E02 /* Smiley.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Smiley.png; sourceTree = "<group>"; };
+		0545F1B22D03C1EA00713E02 /* Forward.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Forward.png; sourceTree = "<group>"; };
+		0545F1B32D03C1EA00713E02 /* drillDiffuse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = drillDiffuse.png; sourceTree = "<group>"; };
+		0545F1B42D03C1EA00713E02 /* Mining.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Mining.png; sourceTree = "<group>"; };
+		0545F1B52D03C1EA00713E02 /* wheelMetal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = wheelMetal.png; sourceTree = "<group>"; };
+		0545F1B62D03C1EA00713E02 /* wheelDiffuse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = wheelDiffuse.png; sourceTree = "<group>"; };
+		0545F1B72D03C1EB00713E02 /* drillRough.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = drillRough.png; sourceTree = "<group>"; };
+		0545F1CA2D03DDC400713E02 /* robot.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; name = robot.dae; path = ../../../../../Desktop/CapstoneVideoGameModels/robot/robot.dae; sourceTree = "<group>"; };
+		0545F1CC2D03E2F000713E02 /* robotDrill.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = robotDrill.dae; sourceTree = "<group>"; };
+		0545F1CD2D03E2F000713E02 /* robotIdle.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = robotIdle.dae; sourceTree = "<group>"; };
+		0545F1CE2D03E2F000713E02 /* robotMove.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = robotMove.dae; sourceTree = "<group>"; };
 		056A2B802D000454003DD649 /* waterOLD.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = waterOLD.dae; sourceTree = "<group>"; };
 		056A2B822D0006B0003DD649 /* seamlessNoise.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = seamlessNoise.png; sourceTree = "<group>"; };
 		056A2B842D0020AC003DD649 /* brightWater.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = brightWater.png; sourceTree = "<group>"; };
@@ -163,13 +181,15 @@
 		05FFE05C2CED582800DDAF65 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				0545F1CC2D03E2F000713E02 /* robotDrill.dae */,
+				0545F1CD2D03E2F000713E02 /* robotIdle.dae */,
+				0545F1CE2D03E2F000713E02 /* robotMove.dae */,
 				056A2BAE2D013C05003DD649 /* rock.dae */,
 				056A2B902D003195003DD649 /* grass.dae */,
 				056A2B922D0031CF003DD649 /* water.dae */,
 				05FFE0682CED861100DDAF65 /* stars.dae */,
 				056A2BAA2D012A11003DD649 /* tree.dae */,
-				0545F1AD2D02B11B00713E02 /* robot.dae */,
-				0545F1AF2D02BC3700713E02 /* robotActions.dae */,
+				0545F1CA2D03DDC400713E02 /* robot.dae */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -177,6 +197,13 @@
 		05FFE0632CED7EB300DDAF65 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
+				0545F1B32D03C1EA00713E02 /* drillDiffuse.png */,
+				0545F1B72D03C1EB00713E02 /* drillRough.png */,
+				0545F1B22D03C1EA00713E02 /* Forward.png */,
+				0545F1B42D03C1EA00713E02 /* Mining.png */,
+				0545F1B12D03C1EA00713E02 /* Smiley.png */,
+				0545F1B62D03C1EA00713E02 /* wheelDiffuse.png */,
+				0545F1B52D03C1EA00713E02 /* wheelMetal.png */,
 				056A2B9E2D00E9C7003DD649 /* darkWaterBig.png */,
 				056A2B9F2D00E9C7003DD649 /* seamlessNoiseBig.png */,
 				056A2B8E2D003123003DD649 /* grass.png */,
@@ -248,25 +275,34 @@
 				056A2BA12D00E9C7003DD649 /* seamlessNoiseBig.png in Resources */,
 				056A2B8F2D003123003DD649 /* grass.png in Resources */,
 				056A2B912D003195003DD649 /* grass.dae in Resources */,
+				0545F1CF2D03E2F000713E02 /* robotDrill.dae in Resources */,
+				0545F1B92D03C1EB00713E02 /* Forward.png in Resources */,
 				056A2BA72D012A02003DD649 /* rockDirt.dae in Resources */,
 				056A2BAB2D012A11003DD649 /* tree.dae in Resources */,
+				0545F1D02D03E2F000713E02 /* robotIdle.dae in Resources */,
 				056A2BA02D00E9C7003DD649 /* darkWaterBig.png in Resources */,
 				05FFE0602CED588800DDAF65 /* testWall.dae in Resources */,
+				0545F1BC2D03C1EB00713E02 /* wheelMetal.png in Resources */,
 				056A2B832D0006B0003DD649 /* seamlessNoise.png in Resources */,
+				0545F1BD2D03C1EB00713E02 /* wheelDiffuse.png in Resources */,
 				056A2B862D0020AD003DD649 /* brightWater.png in Resources */,
 				056A2B812D000454003DD649 /* waterOLD.dae in Resources */,
+				0545F1BB2D03C1EB00713E02 /* Mining.png in Resources */,
 				05CB98DA2CE815F600EF1872 /* Assets.xcassets in Resources */,
 				05CB98DD2CE815F600EF1872 /* Base in Resources */,
 				056A2B932D0031CF003DD649 /* water.dae in Resources */,
+				0545F1CB2D03DDC400713E02 /* robot.dae in Resources */,
 				056A2BA42D00EB2A003DD649 /* darkWaterBigger.png in Resources */,
-				0545F1AE2D02B11B00713E02 /* robot.dae in Resources */,
-				0545F1B02D02BC3700713E02 /* robotActions.dae in Resources */,
 				05CB98D82CE815F500EF1872 /* Base in Resources */,
 				056A2BAF2D013C05003DD649 /* rock.dae in Resources */,
 				056A2BA92D012A0B003DD649 /* rockDirt.png in Resources */,
+				0545F1BA2D03C1EB00713E02 /* drillDiffuse.png in Resources */,
+				0545F1BE2D03C1EB00713E02 /* drillRough.png in Resources */,
 				056A2B872D0020AD003DD649 /* darkWater.png in Resources */,
 				056A2BAD2D012A16003DD649 /* tree.png in Resources */,
 				056A2BA52D00EB2A003DD649 /* seamlessNoiseBigger.png in Resources */,
+				0545F1D12D03E2F000713E02 /* robotMove.dae in Resources */,
+				0545F1B82D03C1EB00713E02 /* Smiley.png in Resources */,
 				05FFE0692CED861100DDAF65 /* stars.dae in Resources */,
 				05FFE0652CED7EBC00DDAF65 /* stars.png in Resources */,
 			);
