@@ -702,7 +702,7 @@ class rock: Tile
         
         // loading rock model
         let rockNode = rockScene.rootNode.childNode(withName: "Rock", recursively: true)
-        rockNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        rockNode!.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
         rockNode!.position = SCNVector3(0.0, 2.0, 0.0)
         
         // creating and setting dirt material
@@ -711,7 +711,7 @@ class rock: Tile
         
         // loading dirt model
         let dirtNode = SCNScene(named:"rock.dae")!.rootNode.childNode(withName: "RockDirt", recursively: true)
-        dirtNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
+        dirtNode!.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
         dirtNode!.position = SCNVector3(0.0, 0.0, 0.0)
         dirtNode!.geometry!.materials = [dirtMat]
         

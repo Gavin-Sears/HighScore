@@ -26,7 +26,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     private var cameraNode: SCNNode = SCNNode()
     private var camTracks: Bool = true
     private let camPos: SCNVector3 = SCNVector3(x: 2.0, y: 24.0, z: -2.0)
-    private let relCamPos: SCNVector3 = SCNVector3(x: 0.0, y: 12.0, z: 4.0)
+    private let relCamPos: SCNVector3 = SCNVector3(x: 0.0, y: 8.0, z: 4.0)
     
     // Update loop
     private var curTime: TimeInterval = 0
@@ -139,7 +139,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         self.cameraNode.position = self.relCamPos + player!.obj.position
         //globeNode.position = self.camPos
         // 90 - 18.5 = 71.5
-        self.cameraNode.eulerAngles = SCNVector3(x: -71.5 * .pi / 180, y: 0.0, z: 0.0)
+        self.cameraNode.eulerAngles = SCNVector3(x: -63.44 * .pi / 180.0, y: 0.0, z: 0.0)
         
         curLevel!.gameScene.rootNode.addChildNode(self.cameraNode)
     }

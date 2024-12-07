@@ -66,7 +66,7 @@ class Level
                 }
                 else if (tileIndex == 4)
                 {
-                    //(tile as! rock).addBaseAngle(amount: Float(i).truncatingRemainder(dividingBy: 3.0) * .pi)
+                    (tile as! rock).addBaseAngle(amount: Float(i).truncatingRemainder(dividingBy: 3.0) * .pi)
                 }
                 
                 let posX = j * 2 - 19
