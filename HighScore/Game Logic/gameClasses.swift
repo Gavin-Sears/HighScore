@@ -54,6 +54,7 @@ class MainPlayer: Entity
         let robotScene = SCNScene(named:"robot.dae")!
         self.obj = robotScene.rootNode.childNode(withName: "Armature", recursively: true)!
         self.obj.position = SCNVector3(1.0, 3.0, 1.0)
+        self.obj.scale = SCNVector3(0.5, 0.5, 0.5)
         self.obj.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
         self.rootBone = self.obj.childNode(withName: "Root", recursively: true)!
         self.rootBone.position = SCNVector3(0.0, 0.0, 0.0)
@@ -126,7 +127,7 @@ class MainPlayer: Entity
             else
             {
                 // y
-                if (turn.y > 0.0)
+                if (turn.z > 0.0)
                 {
                     // towards??
                     print("towards")

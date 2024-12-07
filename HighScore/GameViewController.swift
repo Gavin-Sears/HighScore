@@ -26,7 +26,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     private var cameraNode: SCNNode = SCNNode()
     private var camTracks: Bool = true
     private let camPos: SCNVector3 = SCNVector3(x: 2.0, y: 24.0, z: -2.0)
-    private let relCamPos: SCNVector3 = SCNVector3(x: 0.0, y: 12.0, z: -2.0)
+    private let relCamPos: SCNVector3 = SCNVector3(x: 0.0, y: 12.0, z: 4.0)
     
     // Update loop
     private var curTime: TimeInterval = 0
@@ -138,7 +138,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         // place the camera
         self.cameraNode.position = self.relCamPos + player!.obj.position
         //globeNode.position = self.camPos
-        self.cameraNode.eulerAngles = SCNVector3(x: -.pi / 2.0, y: 0.0, z: 0.0)
+        // 90 - 18.5 = 71.5
+        self.cameraNode.eulerAngles = SCNVector3(x: -71.5 * .pi / 180, y: 0.0, z: 0.0)
         
         curLevel!.gameScene.rootNode.addChildNode(self.cameraNode)
     }
@@ -514,13 +515,14 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
                                 
                                 let diffX = point.x - self.firstInput.x
                                 let diffY = point.y - self.firstInput.y
-                                let sumDiff = abs(diffX) + abs(diffY)
+                                let absX = abs(diffX)
+                                let absY = abs(diffY)
+                                
+                                let sumDiff = absX + absY
                                 
                                 if (sumDiff > self.gameViewController!.swipeLength)
                                 {
                                     print("swipe")
-                                    let absX = abs(diffX)
-                                    let absY = abs(diffY)
                                     
                                     if (absX > absY)
                                     {
@@ -530,7 +532,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
                                     else
                                     {
                                         // vertical movement
-                                        move = SCNVector3(0.0, 0.0, diffY / absY)
+                                        move = SCNVector3(0.0, 0.0, -diffY / absY)
+                                        print(move)
                                     }
                                     
                                     self.gameViewController!.player!.move(movement: move)
