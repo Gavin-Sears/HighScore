@@ -65,7 +65,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     // UI
     public var timeLeft: SKLabelNode = SKLabelNode(fontNamed: "ArialRoundedMTBold")
-    public var timer: TimeInterval = 5.4 {//60.4 {
+    public var timer: TimeInterval = 1.4 {
         didSet {
             if (timer > 0.0)
             {
@@ -90,7 +90,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     public var time: TimeInterval?
     public var scoreTime: SKLabelNode = SKLabelNode(fontNamed: "ArialRoundedMTBold")
-    public var nameTime: Int = 40 {
+    public var nameTime: Int = 5 {
         didSet {
             scoreTime.text = "\(nameTime)"
         }
@@ -104,7 +104,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         print("game has loaded")
     }
     
-    public var highScores: [(String, Int)] = []
+    public var highScores: [(String, Int)] = Array(repeating: ("AAA", 0), count: 10)
     
     /// Setting up gameview, and creating game scene
     func setupScene()
@@ -121,8 +121,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     func setScene()
     {
         gameView.delegate = self
-        gameView.isPlaying = true
-        gameView.loops = true // if render loop stops again
+        //gameView.isPlaying = true
+        //gameView.loops = true // if render loop stops again
         //gameView.rendersContinuously = true // change if issues
         //gameView.allowsCameraControl = true
         gameView.showsStatistics = true
@@ -140,10 +140,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         //player!.obj.addChildNode(self.cameraNode)
         self.curLevel!.gameScene.rootNode.addChildNode(player!.obj!)
         
-        //self.gameView.overlaySKScene = self.startUIScene
-        scoreUISwitch()
         // set the scene to the view
         gameView.scene = curLevel!.gameScene
+        
+        scoreUISwitch()
     }
     
     func setupStartUI()
@@ -166,9 +166,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     func startUISwitch()
     {
+        self.pauseGame()
         self.gameView.overlaySKScene = self.startUIScene
         self.myTextField?.removeFromSuperview()
-        self.gameUIScene.removeAllActions()
+        //self.gameUIScene.removeAllActions()
     }
     
     func setupScoreUI()
@@ -274,15 +275,50 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     func scoreUISwitch()
     {
+        self.pauseGame()
         self.gameView.overlaySKScene = self.scoreUIScene
         self.gameView.addSubview(self.myTextField!)
         self.scoreUIScene.run(SKAction.repeatForever(SKAction.sequence([SKAction.wait(forDuration: 1), SKAction.run(countDown)])))
     }
     
+    func scoreEntry(name: String)
+    {
+        submitScore(name: name)
+        clearScore()
+    }
+    
+    // if we know the score entry is in the top ten,
+    // inserts the score into the leaderboard
     func submitScore(name: String)
     {
-        // add score to list of scores
-        print(name)
+        let entry = (name, self.score)
+        // we know the entry at least is this high
+        self.highScores[0] = entry
+        
+        // sorts array with one out of place element
+        // don't need to check last element, since we will have
+        // switched it by the time we get there
+        for i: Int in 0...(self.highScores.count - 2)
+        {
+            let curScore = self.highScores[i].1
+            let nextScore = self.highScores[i + 1].1
+            
+            if (curScore > nextScore)
+            {
+                self.highScores.swapAt(i, i + 1)
+            }
+        }
+    }
+    
+    func clearScore() -> Void
+    {
+        self.score = 0
+        self.playerName = ""
+    }
+    
+    func isHighScore() -> Bool
+    {
+        return self.score > highScores[0].1
     }
     
     func countDown() -> Void
@@ -298,6 +334,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
             
             self.submitScore(name: self.playerName)
             
+            print(self.highScores)
             DispatchQueue.main.async { self.startUISwitch() }
         }
     }
@@ -341,6 +378,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     func gameUISwitch()
     {
+        self.continueGame()
         self.gameView.overlaySKScene = self.gameUIScene
     }
     
@@ -571,49 +609,52 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval)
     {
-        var deltaTime = time - prevTime
-        if (abs(deltaTime) > 10.0)
+        if (!pause)
         {
-            deltaTime = 0.0
+            var deltaTime = time - prevTime
+            if (abs(deltaTime) > 10.0)
+            {
+                deltaTime = 0.0
+            }
+            cameraNode.position = player!.obj!.position + self.relCamPos
+            //cameraNode.position = SCNVector3(cameraNode.position.x, cameraNode.position.y, cameraNode.position.z + 0.03 * sin(Float(time)))
+            skyNode.position = cameraNode.position
+            // mat4 modelMat
+            //mat.setValue(NSValue(scnMatrix4: grassNode.transform), forKey: "modelMat")
+            // mat4 inverseModelMat
+            //mat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(grassNode.transform)), forKey: "inverseModelMat")
+            // float amount
+            //mat.setValue(NSNumber(value: 1.0), forKey: "amount")
+            // vec3 camPos
+            //mat.setValue(NSValue(scnVector3: cameraNode.position), forKey: "camPos")
+            self.timer = self.timer - deltaTime
+            if (self.timer < 0.0)
+            {
+                DispatchQueue.main.async { self.endGame() }
+            }
+            updateDrilling(deltaTime: deltaTime)
+            
+            /*
+             grassTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
+             waterTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
+             treeTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
+             rockTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
+             */
+            //timer -= Float(seconds)
+            curLevel!.spotLightUpdate(pos: player!.obj!.position, rad: 5)
+            
+            /*
+             if (timer < 0.0)
+             {
+             print("scroll")
+             let move = SCNVector3(2.0, 0.0, 0.0)
+             playerPos += move
+             curLevel!.scrollLevel(move: move)
+             timer = 0.5
+             }
+             */
+            prevTime = time
         }
-        cameraNode.position = player!.obj!.position + self.relCamPos
-        //cameraNode.position = SCNVector3(cameraNode.position.x, cameraNode.position.y, cameraNode.position.z + 0.03 * sin(Float(time)))
-        skyNode.position = cameraNode.position
-        // mat4 modelMat
-        //mat.setValue(NSValue(scnMatrix4: grassNode.transform), forKey: "modelMat")
-        // mat4 inverseModelMat
-        //mat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(grassNode.transform)), forKey: "inverseModelMat")
-        // float amount
-        //mat.setValue(NSNumber(value: 1.0), forKey: "amount")
-        // vec3 camPos
-        //mat.setValue(NSValue(scnVector3: cameraNode.position), forKey: "camPos")
-        self.timer = self.timer - deltaTime
-        if (self.timer < 0.0)
-        {
-            //DispatchQueue.main.async { self.endGame() }
-        }
-        updateDrilling(deltaTime: deltaTime)
-        
-        /*
-        grassTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
-        waterTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
-        treeTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
-        rockTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
-         */
-        //timer -= Float(seconds)
-        curLevel!.spotLightUpdate(pos: player!.obj!.position, rad: 5)
-        
-         /*
-        if (timer < 0.0)
-        {
-            print("scroll")
-            let move = SCNVector3(2.0, 0.0, 0.0)
-            playerPos += move
-            curLevel!.scrollLevel(move: move)
-            timer = 0.5
-        }
-          */
-        prevTime = time
     }
     
     /// Movement logic for player to be used in update loop
@@ -663,6 +704,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
                         if finger == nil {
                             fingers[index] = touch
                             //print("finger \(index+1): x=\(point.x) , y=\(point.y)")
+                            print("button has been pressed")
                             let playerName = self.gameViewController?.playerName
                             if (playerName!.count == 3)
                             {
@@ -810,21 +852,29 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     func endGame()
     {
-        //self.pause = true
-        //self.gameScene.isPaused = true
-        //self.gameView.isPlaying = false
-        //self.gameView.loops = false
-        /*
-        self.player!.obj.position = SCNVector3(1.0, 3.0, 1.0)
-        cameraNode.position = player!.obj.position + self.relCamPos
-        curLevel!.resetTiles()
-         */
+        gameView.scene!.isPaused = true
+        self.pause = true
         
-        curLevel = nil
-        
-        DispatchQueue.main.asyncAfter(deadline: .now())
+        if (self.isHighScore())
         {
+            self.scoreUISwitch()
         }
+        else
+        {
+            self.startUISwitch()
+        }
+    }
+    
+    func pauseGame()
+    {
+        gameView.scene!.isPaused = true
+        self.pause = true
+    }
+    
+    func continueGame()
+    {
+        gameView.scene!.isPaused = false
+        self.pause = false
     }
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
