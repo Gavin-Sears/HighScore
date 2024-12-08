@@ -25,7 +25,6 @@ class LoadingScreenViewController : UIViewController
     
     public func reload()
     {
-        self.gameController.myUnwindAction()
         self.gameController = nil
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         

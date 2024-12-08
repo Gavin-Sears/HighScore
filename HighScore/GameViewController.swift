@@ -11,7 +11,7 @@ import SpriteKit
 import QuartzCore
 import SceneKit
 
-class GameViewController: UIViewController, SCNSceneRendererDelegate
+class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFieldDelegate
 {
     
     // Loading Screen info
@@ -19,7 +19,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     
     // Scenes and Views
     private weak var gameView: SCNView!
-    private var UIScene: SKScene!
+    private var gameUIScene: SKScene!
+    private var scoreUIScene: SKScene!
+    private var startUIScene: SKScene!
     
     // Camera
     private var cameraNode: SCNNode = SCNNode()
@@ -83,6 +85,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         }
     }
     
+    public var myTextField: UITextField?
+    
     // Beginning functions
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -90,20 +94,16 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         print("game has loaded")
     }
     
-    override func viewDidDisappear(_ animated: Bool)
-    {
-        (presentingController as! LoadingScreenViewController).reload()
-    }
-    
-    @IBAction func myUnwindAction(unwindSegue: UIStoryboardSegue)
-    {
-        print("dismissed")
-    }
+    public var highScores: [(String, Int)] = []
     
     /// Setting up gameview, and creating game scene
     func setupScene()
     {
         gameView = self.view as? SCNView
+        
+        setupStartUI()
+        setupGameUI()
+        setupScoreUI()
         
         setScene()
     }
@@ -130,15 +130,87 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         //player!.obj.addChildNode(self.cameraNode)
         self.curLevel!.gameScene.rootNode.addChildNode(player!.obj!)
         
-        setupGameUI()
-        
+        //self.gameView.overlaySKScene = self.startUIScene
+        scoreUISwitch()
         // set the scene to the view
         gameView.scene = curLevel!.gameScene
     }
     
-    func setupMenuUI()
+    func setupStartUI()
     {
-        // create name, scoreboard, and swipe/tap to start
+        let screenSize = self.gameView.bounds.size
+        let halfW = screenSize.width / 2.0
+        let halfH = screenSize.height / 2.0
+        
+        self.startUIScene = SKScene(size: CGSize(width: screenSize.width, height: screenSize.height))
+        
+        // HIGH SCORE
+        // LEADERBOARD (text)
+        
+        // (actual Leaderboard)
+        // leaderboard transparent box
+        // leaderboard entries 1-10
+        
+        // SWIPE/TAP TO START
+    }
+    
+    func startUISwitch()
+    {
+        self.gameView.overlaySKScene = self.startUIScene
+        self.myTextField?.removeFromSuperview()
+    }
+    
+    func setupScoreUI()
+    {
+        // create score display, name input, and submit
+        let screenSize = self.gameView.bounds.size
+        let halfW = screenSize.width / 2.0
+        let halfH = screenSize.height / 2.0
+        
+        self.scoreUIScene = SKScene(size: CGSize(width: screenSize.width, height: screenSize.height))
+        
+        //gray overlay
+        let grayOverlay = SKShapeNode(rect: CGRect(x: 0, y: 0, width: screenSize.width, height: screenSize.height))
+        grayOverlay.fillColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.8)
+        grayOverlay.strokeColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.8)
+        
+        self.scoreUIScene.addChild(grayOverlay)
+        
+        //you got a high score!
+        let congrat = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+        congrat.horizontalAlignmentMode = .center
+        congrat.verticalAlignmentMode = .center
+        congrat.text = "You got a High Score!"
+        congrat.colorBlendFactor = 1.0
+        congrat.fontSize = 80.0
+        congrat.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        congrat.position = CGPoint(x: halfW, y: halfH * 1.5)
+        
+        self.scoreUIScene.addChild(congrat)
+        
+        // text input field
+        self.myTextField = UITextField(frame: CGRect(origin: CGPoint(x: halfW - 150, y: halfH - 75), size: CGSize(width: 300, height: 100)))
+        self.myTextField!.delegate = self
+        self.myTextField!.borderStyle = .roundedRect
+        self.myTextField!.backgroundColor = UIColor.black
+        self.myTextField?.font = UIFont(name: "ArialRoundedMTBold", size: 100.0)
+        self.myTextField?.textColor = UIColor.white
+        self.myTextField?.contentHorizontalAlignment = .center
+        self.myTextField?.contentVerticalAlignment = .bottom
+        self.myTextField!.placeholder = ""
+        
+        // submit button adds to high score list
+        let submitButton = SKShapeNode(rect: CGRect(x: halfW - 225, y: halfH / 1.5, width: 450, height: 100), cornerRadius: 15.0)
+        submitButton.fillColor = UIColor.systemBlue
+        submitButton.strokeColor = UIColor.systemBlue
+        
+        self.scoreUIScene.addChild(submitButton)
+    }
+    
+    func scoreUISwitch()
+    {
+        self.gameView.overlaySKScene = self.scoreUIScene
+        self.gameView.addSubview(self.myTextField!)
     }
     
     func setupGameUI()
@@ -147,8 +219,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         let halfW = screenSize.width / 2.0
         let halfH = screenSize.height / 2.0
         
-        self.UIScene = SKScene(size: CGSize(width: screenSize.width, height: screenSize.height))
-        self.UIScene.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        self.gameUIScene = SKScene(size: CGSize(width: screenSize.width, height: screenSize.height))
+        self.gameUIScene.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
         // create timer, and score
         self.timeLeft.horizontalAlignmentMode = .left
@@ -159,7 +231,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         self.timeLeft.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
         self.timeLeft.position = CGPoint(x: halfW / 4.0, y: halfH - 90)
         
-        self.UIScene.addChild(self.timeLeft)
+        self.gameUIScene.addChild(self.timeLeft)
         
         self.scoreLabel.horizontalAlignmentMode = .left
         self.scoreLabel.verticalAlignmentMode = .bottom
@@ -169,15 +241,18 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         self.scoreLabel.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
         self.scoreLabel.position = CGPoint(x: -halfW + halfW / 8.0, y: halfH - 90)
         
-        self.UIScene.addChild(self.scoreLabel)
+        self.gameUIScene.addChild(self.scoreLabel)
         
         let swipeArea = SwipeZone(imageNamed: "transparent")
         swipeArea.gameViewController = self
         swipeArea.scale(to: CGSize(width: screenSize.width, height: screenSize.height))
         
-        self.UIScene.addChild(swipeArea)
-        
-        self.gameView.overlaySKScene = self.UIScene
+        self.gameUIScene.addChild(swipeArea)
+    }
+    
+    func gameUISwitch()
+    {
+        self.gameView.overlaySKScene = self.gameUIScene
     }
     
     func setupCamera()
@@ -426,7 +501,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         self.timer = self.timer - deltaTime
         if (self.timer < 0.0)
         {
-            DispatchQueue.main.async { self.endGame() }
+            //DispatchQueue.main.async { self.endGame() }
         }
         updateDrilling(deltaTime: deltaTime)
         
@@ -622,8 +697,43 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         
         DispatchQueue.main.asyncAfter(deadline: .now())
         {
-            self.presentingController!.dismiss(animated: false)
         }
+    }
+    
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        // get the current text, or use an empty string if that failed
+        let currentText = textField.text ?? ""
+
+        // attempt to read the range they are trying to change, or exit if we can't
+        guard let stringRange = Range(range, in: currentText) else { return false }
+
+        // add their new text to the existing text
+        let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+        
+        // words that I don't want to be allowed
+        let badWords = ["sex", "fuk", "fuc", "cum", "ass", "fag", "jew", "tit", "bbc", "nut", "poo", "pee", "kkk", "nig", "gyp"]
+        
+        var accepted = true
+        
+        for word in badWords
+        {
+            if (updatedText.lowercased() == word)
+            {
+                accepted = false
+            }
+        }
+        
+        // make sure the result is under 3 characters
+        return (updatedText.count <= 3) && containsOnlyLetters(input: updatedText) && accepted
+    }
+    
+    func containsOnlyLetters(input: String) -> Bool {
+       for chr in input {
+          if (!(chr >= "a" && chr <= "z") && !(chr >= "A" && chr <= "Z") ) {
+             return false
+          }
+       }
+       return true
     }
     
     func deepCopyNode(_ node: SCNNode) -> SCNNode {
