@@ -11,6 +11,8 @@ import SceneKit
 
 protocol Tile
 {
+    var originalIndex: Int? { get set }
+    var type: Int { get set }
     var freshness: Float { get set }
     var obj: SCNNode? { get set }
     var canWalk: Bool { get set }
@@ -24,5 +26,5 @@ protocol Tile
 protocol Entity
 {
     var moveSpeed: Float { get set }
-    var obj: SCNNode { get set }
+    var obj: SCNNode? { get set }
 }

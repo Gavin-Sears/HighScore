@@ -15,11 +15,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
 {
     
     // Loading Screen info
-    public var presentingController: UIViewController?
+    public weak var presentingController: UIViewController?
     
     // Scenes and Views
-    private var gameView: SCNView!
-    private var gameScene: SCNScene!
+    private weak var gameView: SCNView!
     private var UIScene: SKScene!
     
     // Camera
@@ -27,12 +26,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     private var camTracks: Bool = true
     private let camPos: SCNVector3 = SCNVector3(x: 2.0, y: 24.0, z: -2.0)
     private let relCamPos: SCNVector3 = SCNVector3(x: 0.0, y: 8.0, z: 4.0)
-    
-    // Update loop
-    private var curTime: TimeInterval = 0
-    private var stillTime: TimeInterval = 0
-    private var turnPhase: Bool = true
-    private var stillPhase: Bool = true
     
     // Game State
     private var pause: Bool = false
@@ -55,8 +48,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     public var rockTile: rock = rock()
     
     public var playerPos = SCNVector3(1.0, 0.0, 1.0)
-    public var timer: TimeInterval = 0.5
-    public var prevTime: TimeInterval = 999.0
+    public var prevTime: TimeInterval = 0.0
     
     public var skyNode: SCNNode = SCNNode()
     public var player: MainPlayer?
@@ -64,10 +56,32 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     // controls variables
     // how far you have to swipe to swipe
     public var swipeLength: CGFloat = 0.1
-    // how long you have to hold tap to drill
-    // MUST BE UPDATED IN UI FOR SOME REASON
-    // if you are currently holding
+    
     public var fingerDown: Bool = false
+    public var drillTimer: TimeInterval = 0.2
+    public var drillTimerMax: TimeInterval = 0.2
+    
+    // UI
+    public var timeLeft: SKLabelNode = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+    public var timer: TimeInterval = 5.4 {//60.4 {
+        didSet {
+            if (timer > 0.0)
+            {
+                timeLeft.text = "Time: \(Int(round(timer)))"
+            }
+            else
+            {
+                timeLeft.text = "Time: 0"
+            }
+        }
+    }
+    
+    public var scoreLabel: SKLabelNode = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+    public var score: Int = 0 {
+        didSet {
+            scoreLabel.text = "Score: \(score)"
+        }
+    }
     
     // Beginning functions
     override func viewDidLoad() {
@@ -76,11 +90,26 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         print("game has loaded")
     }
     
+    override func viewDidDisappear(_ animated: Bool)
+    {
+        (presentingController as! LoadingScreenViewController).reload()
+    }
+    
+    @IBAction func myUnwindAction(unwindSegue: UIStoryboardSegue)
+    {
+        print("dismissed")
+    }
+    
     /// Setting up gameview, and creating game scene
     func setupScene()
     {
         gameView = self.view as? SCNView
         
+        setScene()
+    }
+    
+    func setScene()
+    {
         gameView.delegate = self
         gameView.isPlaying = true
         gameView.loops = true // if render loop stops again
@@ -88,32 +117,59 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         //gameView.allowsCameraControl = true
         gameView.showsStatistics = true
         gameView.backgroundColor = UIColor.black
-        
-        self.curLevel = Level(gameView: self.gameView)
+        let level = Level()
+        self.curLevel = level
         //self.curLevel!.gameScene.rootNode.addChildNode(self.cameraNode)
         //setupSky()
         //self.curLevel!.gameScene.rootNode.addChildNode(skyNode)
         
+        //self.player = nil
         self.player = MainPlayer(moveSpeed: 3.0, curLevel: self.curLevel!)
         //player!.obj.position = SCNVector3(1.0, 0.0, 1.0)
         setupCamera()
         //player!.obj.addChildNode(self.cameraNode)
-        self.curLevel!.gameScene.rootNode.addChildNode(player!.obj)
+        self.curLevel!.gameScene.rootNode.addChildNode(player!.obj!)
         
-        setupUI()
+        setupGameUI()
         
         // set the scene to the view
         gameView.scene = curLevel!.gameScene
-        
-        // gameView.frame.size
     }
     
-    func setupUI()
+    func setupMenuUI()
+    {
+        // create name, scoreboard, and swipe/tap to start
+    }
+    
+    func setupGameUI()
     {
         let screenSize = self.gameView.bounds.size
+        let halfW = screenSize.width / 2.0
+        let halfH = screenSize.height / 2.0
         
         self.UIScene = SKScene(size: CGSize(width: screenSize.width, height: screenSize.height))
         self.UIScene.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        
+        // create timer, and score
+        self.timeLeft.horizontalAlignmentMode = .left
+        self.timeLeft.verticalAlignmentMode = .bottom
+        self.timeLeft.text = "60"
+        self.timeLeft.colorBlendFactor = 1.0
+        self.timeLeft.fontSize = 80.0
+        self.timeLeft.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        self.timeLeft.position = CGPoint(x: halfW / 4.0, y: halfH - 90)
+        
+        self.UIScene.addChild(self.timeLeft)
+        
+        self.scoreLabel.horizontalAlignmentMode = .left
+        self.scoreLabel.verticalAlignmentMode = .bottom
+        self.scoreLabel.text = "Score: 0"
+        self.scoreLabel.colorBlendFactor = 1.0
+        self.scoreLabel.fontSize = 80.0
+        self.scoreLabel.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        self.scoreLabel.position = CGPoint(x: -halfW + halfW / 8.0, y: halfH - 90)
+        
+        self.UIScene.addChild(self.scoreLabel)
         
         let swipeArea = SwipeZone(imageNamed: "transparent")
         swipeArea.gameViewController = self
@@ -136,7 +192,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         // self.gameScene.rootNode.addChildNode(self.cameraNode)
         
         // place the camera
-        self.cameraNode.position = self.relCamPos + player!.obj.position
+        self.cameraNode.position = self.relCamPos + player!.obj!.position
         //globeNode.position = self.camPos
         // 90 - 18.5 = 71.5
         self.cameraNode.eulerAngles = SCNVector3(x: -63.44 * .pi / 180.0, y: 0.0, z: 0.0)
@@ -351,7 +407,12 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
     
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval)
     {
-        cameraNode.position = player!.obj.position + self.relCamPos
+        var deltaTime = time - prevTime
+        if (abs(deltaTime) > 10.0)
+        {
+            deltaTime = 0.0
+        }
+        cameraNode.position = player!.obj!.position + self.relCamPos
         //cameraNode.position = SCNVector3(cameraNode.position.x, cameraNode.position.y, cameraNode.position.z + 0.03 * sin(Float(time)))
         skyNode.position = cameraNode.position
         // mat4 modelMat
@@ -362,6 +423,12 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         //mat.setValue(NSNumber(value: 1.0), forKey: "amount")
         // vec3 camPos
         //mat.setValue(NSValue(scnVector3: cameraNode.position), forKey: "camPos")
+        self.timer = self.timer - deltaTime
+        if (self.timer < 0.0)
+        {
+            DispatchQueue.main.async { self.endGame() }
+        }
+        updateDrilling(deltaTime: deltaTime)
         
         /*
         grassTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
@@ -370,11 +437,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         rockTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
          */
         //timer -= Float(seconds)
-        /*
-        let deltaTime = time - prevTime
         
-        timer -= deltaTime
-        
+         /*
         if (timer < 0.0)
         {
             print("scroll")
@@ -384,69 +448,30 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
             curLevel!.scrollLevel(move: move)
             timer = 0.5
         }
+          */
         prevTime = time
-         */
     }
     
     /// Movement logic for player to be used in update loop
-    func updateMovement(time: TimeInterval)
+    func updateDrilling(deltaTime: TimeInterval)
     {
-        /*
-        if let player = self.player
+        if (self.fingerDown)
         {
-            if dpad.countFingers() == 1
-            {
-                let point = dpad.findFingerLocation()
-                let vec = dpad.readInput(point: point)
-                //dpad.lastMove = vec
-                //print(dpad.lastMove)
-                if self.turnPhase
-                {
-                    self.curTime = time
-                    self.turnPhase = false
-                }
-                
-                if !self.stillPhase
-                {
-                    self.stillPhase = true
-                }
-                
-                if abs(time - self.curTime) > (4.0/60.0)
-                {
-                    DispatchQueue.main.asyncAfter(deadline: .now())
-                    {
-                        player.move(movement: vec, curLevel: self.curLevel!)
-                    }
-                }
-                else
-                {
-                    DispatchQueue.main.asyncAfter(deadline: .now())
-                    {
-                        player.turn(turn: vec)
-                    }
-                }
-            }
-            else
-            {
-                if stillPhase
-                {
-                    self.stillTime = time
-                    stillPhase = false
-                }
-                if abs(time - self.stillTime) > (10.0/60.0)
-                {
-                    self.turnPhase = true
-                    if let plyr = self.player
-                    {
-                        if !plyr.isMoving
-                        {
-                            plyr.idleAnim()
-                        }
-                    }
-                }
-            }
+            drillTimer -= deltaTime
         }
-         */
+        else
+        {
+            player!.isDrilling = false
+            player!.updateAnims()
+            drillTimer = self.drillTimerMax
+        }
+        
+        if (self.fingerDown && drillTimer < 0.0)
+        {
+            self.player!.drill()
+            
+            self.score = self.player!.score
+        }
     }
     
     class SwipeZone: SKSpriteNode
@@ -482,14 +507,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
                                 fingers[index] = touch
                                 self.firstInput = point
                                 self.gameViewController!.fingerDown = true
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 2)
-                                {
-                                    if (self.gameViewController!.fingerDown)
-                                    {
-                                        print("drill")
-                                        self.gameViewController!.player!.drill()
-                                    }
-                                }
                                 //print("finger \(index+1): x=\(point.x) , y=\(point.y)")
                                 break
                             }
@@ -510,7 +527,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
                         for (_,finger) in self.fingers.enumerated() {
                             if let finger = finger, finger == touch {
                                 // print("finger \(index+1): x=\(point.x) , y=\(point.y)")
-                                self.gameViewController!.fingerDown = false
                                 var move: SCNVector3 = SCNVector3(0.0, 0.0, 0.0)
                                 
                                 let diffX = point.x - self.firstInput.x
@@ -522,6 +538,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
                                 
                                 if (sumDiff > self.gameViewController!.swipeLength)
                                 {
+                                    self.gameViewController!.fingerDown = false
                                     if (absX > absY)
                                     {
                                         // horizontal movement
@@ -589,31 +606,25 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
         }
     }
     
-    func togglePause()
+    func endGame()
     {
-        self.pause = !self.pause
-        self.gameScene.isPaused = !self.gameScene.isPaused
-        self.gameView.isPlaying = !self.gameView.isPlaying
-        self.gameView.loops = !self.gameView.loops
-    }
-    
-    /*
-    override func viewWillDisappear(_ animated: Bool)
-    {
-        super.viewWillDisappear(animated)
-        if isBeingDismissed
+        //self.pause = true
+        //self.gameScene.isPaused = true
+        //self.gameView.isPlaying = false
+        //self.gameView.loops = false
+        /*
+        self.player!.obj.position = SCNVector3(1.0, 3.0, 1.0)
+        cameraNode.position = player!.obj.position + self.relCamPos
+        curLevel!.resetTiles()
+         */
+        
+        curLevel = nil
+        
+        DispatchQueue.main.asyncAfter(deadline: .now())
         {
-            if let controller = self.presentingController as? LoadingScreenViewController
-            {
-                controller.dismiss(animated: false)
-                if let superController = controller.presentingController as? MainMenuViewController
-                {
-                    superController.togglePause()
-                }
-            }
+            self.presentingController!.dismiss(animated: false)
         }
     }
-     */
     
     func deepCopyNode(_ node: SCNNode) -> SCNNode {
         
@@ -625,6 +636,11 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate
       
       return clone
     }
+    
+    deinit {
+        self.curLevel?.gameScene.rootNode.cleanup()
+        print("deallocating view")
+    }
 }
 
 extension SCNVector3 {
@@ -632,3 +648,13 @@ extension SCNVector3 {
          return simd_distance(simd_float3(self), simd_float3(vector))
      }
  }
+
+extension SCNNode {
+    func cleanup() {
+        for child in childNodes {
+            child.cleanup()
+        }
+        geometry = nil
+        print("cleanup")
+    }
+}

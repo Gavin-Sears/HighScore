@@ -34,15 +34,13 @@ class Level
                                       1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 4, 4,]
     public var tiles: [[Tile]] = []
     public var gameScene: SCNScene
-    public var gameView: SCNView
     // 0 is air, 1 is grass, 2 is water, 3 is tree, 4 is rock
     private var tileArray: [() -> Tile] = [air.init, grass.init, water.init, tree.init, rock.init]
     private var lights: [SCNNode] = []
     
-    init(gameView: SCNView)
+    init()
     {
         self.gameScene = SCNScene()
-        self.gameView = gameView
         
         buildLights()
         buildTiles()
@@ -58,7 +56,8 @@ class Level
             {
                 let tileIndex = tileIndices[(i * 20) + j]
                 
-                let tile = tileArray[tileIndex]()
+                var tile = tileArray[tileIndex]()
+                tile.originalIndex = tileIndex
                 
                 if (tileIndex == 3)
                 {
@@ -80,6 +79,96 @@ class Level
             
             self.tiles.append(row)
         }
+    }
+    
+    func resetTiles()
+    {
+        // for each row, sort them
+        for i: Int in 0...tiles.count - 1
+        {
+            quickSortTiles(tileList: &tiles[i], low: 0, high: tiles.count - 1)
+        }
+        // then sort the rows based on the lowest element
+        quickSort2DTiles(tileList: &tiles, low: 0, high: tiles.count - 1)
+        
+        // now resetting graphics to match current array
+        
+        for i in 0...19
+        {
+            for j in 0...19
+            {
+                let tile = tiles[i][j]
+                
+                let posX = j * 2 - 19
+                let posZ = i * 2 - 19
+                
+                tile.obj?.position = SCNVector3(posX, 0, posZ)
+            }
+        }
+    }
+    
+    func quickSortTiles(tileList: inout [Tile], low: Int, high: Int)
+    {
+        if (low >= high || low < 0)
+        {
+            return
+        }
+        
+        let p = partition(tileList: &tileList, low: low, high: high)
+        
+        quickSortTiles(tileList: &tileList, low: low, high: p - 1)
+        quickSortTiles(tileList: &tileList, low: p + 1, high: high)
+    }
+    
+    func quickSort2DTiles(tileList: inout [[Tile]], low: Int, high: Int)
+    {
+        if (low >= high || low < 0)
+        {
+            return
+        }
+        
+        let p = partition2D(tileList: &tileList, low: low, high: high)
+        
+        quickSort2DTiles(tileList: &tileList, low: low, high: p - 1)
+        quickSort2DTiles(tileList: &tileList, low: p + 1, high: high)
+    }
+    
+    func partition(tileList: inout [Tile], low: Int, high: Int) -> Int
+    {
+        let pivot = tileList[high]
+        
+        var i = low
+        
+        for j: Int in low...high - 1
+        {
+            if (tileList[j].originalIndex! <= pivot.originalIndex!)
+            {
+                tileList.swapAt(i, j)
+                i += 1
+            }
+        }
+        
+        tileList.swapAt(i, high)
+        return i
+    }
+    
+    func partition2D(tileList: inout [[Tile]], low: Int, high: Int) -> Int
+    {
+        let pivot = tileList[high]
+        
+        var i = low
+        
+        for j: Int in low...high - 1
+        {
+            if (tileList[j][0].originalIndex! <= pivot[0].originalIndex!)
+            {
+                tileList.swapAt(i, j)
+                i += 1
+            }
+        }
+        
+        tileList.swapAt(i, high)
+        return i
     }
     
     func buildLights()
@@ -226,10 +315,30 @@ class Level
         return tiles[10 + Int(movement.z)][10 + Int(movement.x)]
     }
     
+    func updateWaterFreshness(amount: Float)
+    {
+        for i: Int in 0...tiles.count - 1
+        {
+            for j: Int in 0...tiles[i].count - 1
+            {
+                let theTile: Tile = tiles[i][j]
+                
+                if (theTile.type == 2)
+                {
+                    theTile.updateFreshness(amount: amount)
+                }
+            }
+        }
+    }
+    
     //TODO: parse csv file for freshness numbers
     func readFreshness(text: String) -> [String]
     {
         return text.components(separatedBy: ",")
+    }
+    
+    deinit{
+        print("level deallocated")
     }
 }
 

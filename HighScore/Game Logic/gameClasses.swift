@@ -16,10 +16,12 @@ import SpriteKit
 // NOT NECESSARILY PLAYER 1
 class MainPlayer: Entity
 {
+    var score: Int = 0
+    
     // Basic stats
     var moveSpeed: Float
     // object in scene (is armature)
-    var obj: SCNNode
+    weak var obj: SCNNode?
     // root bone (child of armature)
     var rootBone: SCNNode
     // robot mesh node (child of armature)
@@ -46,14 +48,15 @@ class MainPlayer: Entity
     var moveAnimPlayer: SCNAnimationPlayer
     var drillAnimPlayer: SCNAnimationPlayer
     
-    var curLevel: Level?
+    weak var curLevel: Level?
     
     // used for keeping rotations clean
-    var rotVec: SCNVector3 = SCNVector3(x: 0, y: 0, z: 1)
+    var rotVec: SCNVector3 = SCNVector3(x: 0, y: 0, z: -1.0)
     
     // movement logic
     var isMoving: Bool = false
     var isDrilling: Bool = false
+    var inDrillFunction: Bool = false
     
     init(moveSpeed: Float, curLevel: Level)
     {
@@ -61,14 +64,14 @@ class MainPlayer: Entity
         self.moveSpeed = moveSpeed
         let robotScene = SCNScene(named:"robot.dae")!
         self.obj = robotScene.rootNode.childNode(withName: "Armature", recursively: true)!
-        self.obj.position = SCNVector3(1.0, 3.0, 1.0)
-        self.obj.scale = SCNVector3(0.3, 0.3, 0.3)
-        self.obj.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
-        self.rootBone = self.obj.childNode(withName: "Root", recursively: true)!
+        self.obj!.position = SCNVector3(1.0, 3.0, 1.0)
+        self.obj!.scale = SCNVector3(0.3, 0.3, 0.3)
+        self.obj!.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
+        self.rootBone = self.obj!.childNode(withName: "Root", recursively: true)!
         self.rootBone.position = SCNVector3(0.0, 0.0, 0.0)
         self.rootBone.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
         
-        self.robotNode = self.obj.childNode(withName: "Robot", recursively: true)!
+        self.robotNode = self.obj!.childNode(withName: "Robot", recursively: true)!
         self.robotNode.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
         
         let roboGeo = robotNode.geometry!
@@ -111,9 +114,9 @@ class MainPlayer: Entity
         self.drillAnimPlayer.paused = true
         //self.drillAnimPlayer.play()
         
-        self.obj.addAnimationPlayer(self.idleAnimPlayer, forKey: "Idle")
-        self.obj.addAnimationPlayer(self.moveAnimPlayer, forKey: "Move")
-        self.obj.addAnimationPlayer(self.drillAnimPlayer, forKey: "Drill")
+        self.obj!.addAnimationPlayer(self.idleAnimPlayer, forKey: "Idle")
+        self.obj!.addAnimationPlayer(self.moveAnimPlayer, forKey: "Move")
+        self.obj!.addAnimationPlayer(self.drillAnimPlayer, forKey: "Drill")
         
         self.isMoving = false
     }
@@ -135,12 +138,14 @@ class MainPlayer: Entity
                 if (turn.x > 0.0)
                 {
                     // right
-                    self.obj.eulerAngles.y = -.pi / 2.0
+                    self.obj!.eulerAngles.y = -.pi / 2.0
+                    self.rotVec = SCNVector3(1.0, 0.0, 0.0)
                 }
                 else
                 {
                     // left
-                    self.obj.eulerAngles.y = .pi / 2.0
+                    self.obj!.eulerAngles.y = .pi / 2.0
+                    self.rotVec = SCNVector3(-1.0, 0.0, 0.0)
                 }
             }
             else
@@ -149,12 +154,14 @@ class MainPlayer: Entity
                 if (turn.z > 0.0)
                 {
                     // towards
-                    self.obj.eulerAngles.y = .pi
+                    self.obj!.eulerAngles.y = .pi
+                    self.rotVec = SCNVector3(0.0, 0.0, 1.0)
                 }
                 else
                 {
                     // away
-                    self.obj.eulerAngles.y = 0.0001
+                    self.obj!.eulerAngles.y = 0.0001
+                    self.rotVec = SCNVector3(0.0, 0.0, -1.0)
                 }
             }
         }
@@ -166,24 +173,54 @@ class MainPlayer: Entity
         if (!isMoving && !isDrilling)
         {
             self.isDrilling = true
+            self.inDrillFunction = true
             self.updateAnims()
-            // search for tile in front of player
-            let theTile = air()
             
-            // lower freshness by value
-            theTile.freshness -= 0.1
+            // search for tile in front of player
+            let theTile = curLevel!.searchTiles(movement: self.rotVec)
+            
+            if (theTile.type != 2)
+            {
+                // lower freshness by value if not water
+                theTile.updateFreshness(amount: -0.1)
+            }
+            else
+            {
+                curLevel?.updateWaterFreshness(amount: -0.02)
+            }
             
             // checking if freshness if still there, so we can increase score
             if (theTile.freshness > 0.0)
             {
                 // increment score
+                switch (theTile.type)
+                {
+                case 0:
+                    break
+                case 1:
+                    // score for grass
+                    self.score += 100
+                case 2:
+                    // score for water
+                    self.score += 500
+                case 3:
+                    // score for tree
+                    self.score += 300
+                case 4:
+                    // score for rock
+                    self.score += 400
+                default:
+                    break
+                }
             }
             
             // should be duration of drill animation
             DispatchQueue.main.asyncAfter(deadline: .now() + drillAnimPlayer.animation.duration)
             {
-                self.isDrilling = false
-                self.updateAnims()
+                if (self.inDrillFunction)
+                {
+                    self.isDrilling = false
+                }
             }
         }
     }
@@ -198,7 +235,7 @@ class MainPlayer: Entity
     ///
     func move(movement: SCNVector3)
     {
-        if (!isDrilling && !isMoving)
+        if (!isMoving)
         {
             // we turn regardless of if we can move
             turn(turn: movement)
@@ -207,6 +244,10 @@ class MainPlayer: Entity
             // check to see if we have a valid move
             if (curLevel!.canMove(movement: movement))
             {
+                if (!self.inDrillFunction)
+                {
+                    self.isDrilling = false
+                }
                 //print(self.obj.position)
                 moveAnim(movement: movement * 2.0)
             }
@@ -223,7 +264,7 @@ class MainPlayer: Entity
     {
         self.isMoving = true
         self.updateAnims()
-        self.obj.runAction(
+        self.obj!.runAction(
             SCNAction.move(
                 by: movement,
                 duration: TimeInterval((movement.length / moveSpeed))),
@@ -240,21 +281,8 @@ class MainPlayer: Entity
     
     func updateAnims()
     {
-        if (isDrilling)
-        {
-            // prevent continuous animation start
-            if (!isDrill)
-            {
-                // initiate move animation
-                stopAllAnims(withBlendOutDuration: 0.01)
-                self.drillAnimPlayer.paused = false
-                self.drillAnimPlayer.play()
-                self.isMove = true
-                self.armNode.scale = SCNVector3(1.0, 1.0, 1.0)
-                screenMat.emission.contents = self.mining
-            }
-        }
-        else if (isMoving)
+        
+        if (isMoving)
         {
             // prevent continuous animation start
             if (!isMove)
@@ -266,6 +294,20 @@ class MainPlayer: Entity
                 self.isMove = true
                 self.armNode.scale = SCNVector3(0.0, 0.0, 0.0)
                 self.screenMat.emission.contents = self.forward
+            }
+        }
+        else if (isDrilling)
+        {
+            // prevent continuous animation start
+            if (!isDrill)
+            {
+                // initiate move animation
+                stopAllAnims(withBlendOutDuration: 0.01)
+                self.drillAnimPlayer.paused = false
+                self.drillAnimPlayer.play()
+                self.isDrill = true
+                self.armNode.scale = SCNVector3(1.0, 1.0, 1.0)
+                screenMat.emission.contents = self.mining
             }
         }
         else
@@ -300,13 +342,18 @@ class MainPlayer: Entity
     /// Rounds player position to avoid drifting
     func correctLoc()
     {
-        self.obj.position = roundPos(pos: self.obj.position)
+        self.obj!.position = roundPos(pos: self.obj!.position)
     }
     
     /// Returns whether or not the player is currently moving
     func movementState() -> Bool
     {
-        return self.obj.actionKeys.contains("playerMovement")
+        return self.obj!.actionKeys.contains("playerMovement")
+    }
+    
+    deinit
+    {
+        print("player has been deallocated")
     }
 }
 
@@ -314,8 +361,10 @@ class MainPlayer: Entity
 
 class air: Tile
 {
+    var originalIndex: Int?
+    var type: Int = 0
     var freshness: Float = 0.0
-    var obj: SCNNode?
+    weak var obj: SCNNode?
     var canWalk: Bool = false
     
     required init()
@@ -344,8 +393,10 @@ class air: Tile
 
 class grass: Tile
 {
+    var originalIndex: Int?
+    var type: Int = 1
     var freshness: Float = 1.0
-    var obj: SCNNode?
+    weak var obj: SCNNode?
     var canWalk: Bool = true
     
     required init()
@@ -433,6 +484,8 @@ class grass: Tile
 
 class water: Tile
 {
+    var originalIndex: Int?
+    var type: Int = 2
     var freshness: Float = 1.0
     var obj: SCNNode?
     var canWalk: Bool = false
@@ -548,8 +601,10 @@ class water: Tile
 
 class tree: Tile
 {
+    var originalIndex: Int?
+    var type: Int = 3
     var freshness: Float = 1.0
-    var obj: SCNNode?
+    weak var obj: SCNNode?
     var canWalk: Bool = false
     var originalColors: UIImage?
     var baseYAngle: Float = 0.0
@@ -691,8 +746,10 @@ class tree: Tile
 
 class rock: Tile
 {
+    var originalIndex: Int?
+    var type: Int = 3
     var freshness: Float = 1.0
-    var obj: SCNNode?
+    weak var obj: SCNNode?
     var canWalk: Bool = false
     var baseYAngle: Float = 0.0
     
@@ -757,8 +814,8 @@ class rock: Tile
     
     func updateFreshness(amount: Float)
     {
-        self.freshness = amount
-        rockFreshness(amount: amount)
+        self.freshness += amount
+        rockFreshness(amount: self.freshness)
         
         if (freshness < 0.1)
         {
