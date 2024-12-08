@@ -85,7 +85,17 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         }
     }
     
+    public var invalidText: SKLabelNode?
     public var myTextField: UITextField?
+    
+    public var time: TimeInterval?
+    public var scoreTime: SKLabelNode = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+    public var nameTime: Int = 40 {
+        didSet {
+            scoreTime.text = "\(nameTime)"
+        }
+    }
+    public var playerName: String = ""
     
     // Beginning functions
     override func viewDidLoad() {
@@ -158,6 +168,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     {
         self.gameView.overlaySKScene = self.startUIScene
         self.myTextField?.removeFromSuperview()
+        self.gameUIScene.removeAllActions()
     }
     
     func setupScoreUI()
@@ -171,10 +182,22 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         
         //gray overlay
         let grayOverlay = SKShapeNode(rect: CGRect(x: 0, y: 0, width: screenSize.width, height: screenSize.height))
-        grayOverlay.fillColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.8)
-        grayOverlay.strokeColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.8)
+        let grayColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.8)
+        grayOverlay.fillColor = grayColor
+        grayOverlay.strokeColor = grayColor
         
         self.scoreUIScene.addChild(grayOverlay)
+        
+        // timer to input score
+        self.scoreTime.horizontalAlignmentMode = .left
+        self.scoreTime.verticalAlignmentMode = .bottom
+        self.scoreTime.text = "\(nameTime)"
+        self.scoreTime.colorBlendFactor = 1.0
+        self.scoreTime.fontSize = 80.0
+        self.scoreTime.fontColor = UIColor(red: 1.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        self.scoreTime.position = CGPoint(x: halfW / 8.0 + 5, y: screenSize.height - 90)
+        
+        self.scoreUIScene.addChild(self.scoreTime)
         
         //you got a high score!
         let congrat = SKLabelNode(fontNamed: "ArialRoundedMTBold")
@@ -182,35 +205,101 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         congrat.verticalAlignmentMode = .center
         congrat.text = "You got a High Score!"
         congrat.colorBlendFactor = 1.0
-        congrat.fontSize = 80.0
+        congrat.fontSize = halfH / 8.0
         congrat.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
-        congrat.position = CGPoint(x: halfW, y: halfH * 1.5)
+        congrat.position = CGPoint(x: halfW, y: halfH * 1.7)
+        congrat.zPosition = 0.0
         
         self.scoreUIScene.addChild(congrat)
         
+        // name
+        let name = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+        name.horizontalAlignmentMode = .center
+        name.verticalAlignmentMode = .center
+        name.text = "Initials:"
+        name.colorBlendFactor = 1.0
+        name.fontSize = halfH / 10.0
+        name.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        name.zPosition = 0.0
+        name.position = CGPoint(x: halfW, y: halfH * 1.32)
+        
+        self.scoreUIScene.addChild(name)
+        
         // text input field
-        self.myTextField = UITextField(frame: CGRect(origin: CGPoint(x: halfW - 150, y: halfH - 75), size: CGSize(width: 300, height: 100)))
+        self.myTextField = UITextField(frame: CGRect(origin: CGPoint(x: halfW - 150, y: halfH - 125), size: CGSize(width: 300, height: 120)))
         self.myTextField!.delegate = self
         self.myTextField!.borderStyle = .roundedRect
         self.myTextField!.backgroundColor = UIColor.black
         self.myTextField?.font = UIFont(name: "ArialRoundedMTBold", size: 100.0)
         self.myTextField?.textColor = UIColor.white
-        self.myTextField?.contentHorizontalAlignment = .center
+        self.myTextField?.textAlignment = NSTextAlignment.center
         self.myTextField?.contentVerticalAlignment = .bottom
         self.myTextField!.placeholder = ""
         
+        // wrong input message
+        let wrongText = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+        wrongText.horizontalAlignmentMode = .center
+        wrongText.verticalAlignmentMode = .center
+        wrongText.text = "Use only letters (a-z). Must be 3 characters"
+        wrongText.colorBlendFactor = 1.0
+        wrongText.fontSize = halfH / 32.0
+        wrongText.fontColor = UIColor(red: 1.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        wrongText.zPosition = 1.0
+        wrongText.position = CGPoint(x: halfW, y: halfH / 1.5 + 150)
+        
+        self.scoreUIScene.addChild(wrongText)
+        
         // submit button adds to high score list
-        let submitButton = SKShapeNode(rect: CGRect(x: halfW - 225, y: halfH / 1.5, width: 450, height: 100), cornerRadius: 15.0)
+        let submitButton = SKShapeNode(rect: CGRect(x: halfW - 150, y: halfH / 1.5, width: 300, height: 100), cornerRadius: 50)
         submitButton.fillColor = UIColor.systemBlue
         submitButton.strokeColor = UIColor.systemBlue
+        submitButton.zPosition = 1.0
         
         self.scoreUIScene.addChild(submitButton)
+        
+        // submit text
+        let submitText = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+        submitText.horizontalAlignmentMode = .center
+        submitText.verticalAlignmentMode = .center
+        submitText.text = "Submit"
+        submitText.colorBlendFactor = 1.0
+        submitText.fontSize = halfH / 10.0
+        submitText.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        submitText.zPosition = 2.0
+        submitText.position = CGPoint(x: halfW, y: halfH / 1.5 + 50)
+        
+        self.scoreUIScene.addChild(submitText)
+        
     }
     
     func scoreUISwitch()
     {
         self.gameView.overlaySKScene = self.scoreUIScene
         self.gameView.addSubview(self.myTextField!)
+        self.scoreUIScene.run(SKAction.repeatForever(SKAction.sequence([SKAction.wait(forDuration: 1), SKAction.run(countDown)])))
+    }
+    
+    func submitScore(name: String)
+    {
+        // add score to list of scores
+        print(name)
+    }
+    
+    func countDown() -> Void
+    {
+        nameTime -= 1
+        
+        if (nameTime <= 0)
+        {
+            if (self.playerName.count < 3)
+            {
+                self.playerName = "AAA"
+            }
+            
+            self.submitScore(name: self.playerName)
+            
+            DispatchQueue.main.async { self.startUISwitch() }
+        }
     }
     
     func setupGameUI()
@@ -512,6 +601,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         rockTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
          */
         //timer -= Float(seconds)
+        curLevel!.spotLightUpdate(pos: player!.obj!.position, rad: 5)
         
          /*
         if (timer < 0.0)
@@ -519,7 +609,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
             print("scroll")
             let move = SCNVector3(2.0, 0.0, 0.0)
             playerPos += move
-            curLevel!.spotLightUpdate(pos: playerPos, rad: 5)
             curLevel!.scrollLevel(move: move)
             timer = 0.5
         }
@@ -546,6 +635,44 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
             self.player!.drill()
             
             self.score = self.player!.score
+        }
+    }
+    
+    class submitButton: SKShapeNode
+    {
+        var gameViewController: GameViewController?
+        
+        override var isUserInteractionEnabled: Bool
+        {
+            set
+            {
+                // ignore
+            }
+            get
+            {
+                return true
+            }
+        }
+        
+        var fingers = [UITouch?](repeating: nil, count:5)
+
+        override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+                super.touchesBegan(touches, with: event)
+                for touch in touches{
+                    for (index,finger)  in self.fingers.enumerated() {
+                        if finger == nil {
+                            fingers[index] = touch
+                            //print("finger \(index+1): x=\(point.x) , y=\(point.y)")
+                            let playerName = self.gameViewController?.playerName
+                            if (playerName!.count == 3)
+                            {
+                                self.gameViewController?.submitScore(name: playerName!)
+                                self.gameViewController?.startUISwitch()
+                            }
+                            break
+                        }
+                    }
+                }
         }
     }
     
@@ -711,7 +838,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
         
         // words that I don't want to be allowed
-        let badWords = ["sex", "fuk", "fuc", "cum", "ass", "fag", "jew", "tit", "bbc", "nut", "poo", "pee", "kkk", "nig", "gyp"]
+        // I apologize in advance for anyone who has to read these.
+        // I just tried to figure out what would offend others or ruin
+        // the experience of the exhibit
+        let badWords = ["sex", "fuk", "fuc", "fck", "cum", "ass", "fag", "fgt", "jew", "tit", "bbc", "nut", "poo", "pee", "kkk", "nig", "ngr", "gyp", "cox"]
         
         var accepted = true
         
@@ -724,7 +854,12 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         }
         
         // make sure the result is under 3 characters
-        return (updatedText.count <= 3) && containsOnlyLetters(input: updatedText) && accepted
+        if ((updatedText.count <= 3) && containsOnlyLetters(input: updatedText) && accepted)
+        {
+            self.playerName = updatedText
+            return true
+        }
+        return false
     }
     
     func containsOnlyLetters(input: String) -> Bool {
