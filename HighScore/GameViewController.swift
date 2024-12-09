@@ -10,9 +10,12 @@ import UIKit
 import SpriteKit
 import QuartzCore
 import SceneKit
+import AVFoundation
 
 class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFieldDelegate
 {
+    
+    var backgroundMusic: AVAudioPlayer?
     
     // Loading Screen info
     public weak var presentingController: UIViewController?
@@ -132,6 +135,21 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     /// Setting up gameview, and creating game scene
     func setupScene()
     {
+        let path = Bundle.main.path(forResource: "HighScore.mp3", ofType: nil)
+        
+        var url = URL(fileURLWithPath: "")
+        if let p = path
+        {
+            url = URL(fileURLWithPath: p)
+        }
+        
+        do {
+            backgroundMusic = try AVAudioPlayer(contentsOf: url)
+        }
+        catch {
+            // couldn't load file
+        }
+        
         gameView = self.view as? SCNView
         
         setupStartUI()
@@ -842,12 +860,15 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     func startGame()
     {
         // reset timer
+        backgroundMusic?.play()
         self.continueGame()
         self.gameUISwitch()
     }
     
     func endGame()
     {
+        
+        backgroundMusic?.stop()
         self.scoreLabel.text = "Score: 0"
         gameView.scene!.isPaused = true
         self.timer = 60.4
