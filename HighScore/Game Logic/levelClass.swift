@@ -38,6 +38,8 @@ class Level
     private var tileArray: [() -> Tile] = [air.init, grass.init, water.init, tree.init, rock.init]
     private var lights: [SCNNode] = []
     
+    public var playerNode: SCNNode?
+    
     init()
     {
         self.gameScene = SCNScene()
@@ -71,7 +73,7 @@ class Level
                 let posX = j * 2 - 19
                 let posZ = i * 2 - 19
                 
-                tile.obj?.position = SCNVector3(posX, 0, posZ)
+                tile.obj!.position = SCNVector3(posX, 0, posZ)
                 
                 row.append(tile)
                 self.gameScene.rootNode.addChildNode(tile.obj!)
@@ -300,6 +302,22 @@ class Level
             return
         }
     }
+    
+    /*
+    func updateGlobeShader()
+    {
+        for i: Int in 0...tiles.count - 1
+        {
+            for j: Int in 0...tiles[i].count - 1
+            {
+                if let node = self.playerNode
+                {
+                    tiles[i][j].updateGlobeShader(playerPos: node.position)
+                }
+            }
+        }
+    }
+     */
     
     // checks if given move will cross a block that player is allowed to move on
     func canMove(movement: SCNVector3) -> Bool

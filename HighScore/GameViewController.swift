@@ -44,11 +44,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     public var curLevel: Level?
     
-    public var grassTile: grass = grass()
-    public var waterTile: water = water()
-    public var treeTile: tree = tree()
-    public var rockTile: rock = rock()
-    
     public var playerPos = SCNVector3(1.0, 0.0, 1.0)
     public var prevTime: TimeInterval = 0.0
     
@@ -61,11 +56,12 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     public var fingerDown: Bool = false
     public var drillTimer: TimeInterval = 0.2
+    public var drillCooldown: TimeInterval = 0.5
     public var drillTimerMax: TimeInterval = 0.2
     
-    // UI
+    // game UI stuff
     public var timeLeft: SKLabelNode = SKLabelNode(fontNamed: "ArialRoundedMTBold")
-    public var timer: TimeInterval = 1.4 {
+    public var timer: TimeInterval = 60.4 {
         didSet {
             if (timer > 0.0)
             {
@@ -77,6 +73,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
             }
         }
     }
+    
+    // score submit UI
     
     public var scoreLabel: SKLabelNode = SKLabelNode(fontNamed: "ArialRoundedMTBold")
     public var score: Int = 0 {
@@ -90,12 +88,39 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     public var time: TimeInterval?
     public var scoreTime: SKLabelNode = SKLabelNode(fontNamed: "ArialRoundedMTBold")
-    public var nameTime: Int = 5 {
+    public var nameTime: Int = 40 {
         didSet {
             scoreTime.text = "\(nameTime)"
         }
     }
     public var playerName: String = ""
+    
+    // start screen UI
+    
+    // entry 0 will be top score
+    public var entries: [[SKLabelNode]] = []
+    public var highScores: [(String, Int)] = Array(repeating: ("AAA", 0), count: 10) {
+        didSet {
+            if entries.count > 0
+            {
+                // entries number can't be more than highScores
+                for i: Int in 0...(entries.count - 1)
+                {
+                    let entry = self.highScores[highScores.count - (i + 1)]
+                    // names get displayed last
+                    entries[i][2].text = entry.0
+                    entries[i][1].text = "\(entry.1)"
+                    // hide entries with zero score that are AAA
+                    let hidden = entries[i][2].text == "AAA" && Int(entries[i][1].text!) == 0
+                    for j: Int in 0...2
+                    {
+                        entries[i][j].isHidden = hidden
+                    }
+                }
+            }
+        }
+    }
+    public var canStart: Bool = false
     
     // Beginning functions
     override func viewDidLoad() {
@@ -103,8 +128,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         setupScene()
         print("game has loaded")
     }
-    
-    public var highScores: [(String, Int)] = Array(repeating: ("AAA", 0), count: 10)
     
     /// Setting up gameview, and creating game scene
     func setupScene()
@@ -129,21 +152,19 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         gameView.backgroundColor = UIColor.black
         let level = Level()
         self.curLevel = level
-        //self.curLevel!.gameScene.rootNode.addChildNode(self.cameraNode)
-        //setupSky()
-        //self.curLevel!.gameScene.rootNode.addChildNode(skyNode)
+        setupSky()
         
-        //self.player = nil
         self.player = MainPlayer(moveSpeed: 3.0, curLevel: self.curLevel!)
-        //player!.obj.position = SCNVector3(1.0, 0.0, 1.0)
+        curLevel!.playerNode = self.player!.obj!
         setupCamera()
-        //player!.obj.addChildNode(self.cameraNode)
         self.curLevel!.gameScene.rootNode.addChildNode(player!.obj!)
         
         // set the scene to the view
         gameView.scene = curLevel!.gameScene
         
-        scoreUISwitch()
+        startUISwitch()
+        
+        curLevel!.spotLightUpdate(pos: player!.obj!.position, rad: 5)
     }
     
     func setupStartUI()
@@ -154,14 +175,126 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         
         self.startUIScene = SKScene(size: CGSize(width: screenSize.width, height: screenSize.height))
         
+        //gray overlay
+        let grayOverlay = SKShapeNode(rect: CGRect(x: 0, y: 0, width: screenSize.width, height: screenSize.height))
+        let grayColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.8)
+        grayOverlay.fillColor = grayColor
+        grayOverlay.strokeColor = grayColor
+        grayOverlay.zPosition = 0.0
+        
+        self.startUIScene.addChild(grayOverlay)
+        
         // HIGH SCORE
+        let title = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+        title.horizontalAlignmentMode = .center
+        title.verticalAlignmentMode = .center
+        title.text = "High Score"
+        title.colorBlendFactor = 1.0
+        title.fontSize = halfH / 8.0
+        title.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        title.position = CGPoint(x: halfW, y: halfH * 1.7)
+        title.zPosition = 1.0
+        
+        self.startUIScene.addChild(title)
+        
         // LEADERBOARD (text)
+        let lbText = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+        lbText.horizontalAlignmentMode = .center
+        lbText.verticalAlignmentMode = .center
+        lbText.text = "Leaderboard:"
+        lbText.colorBlendFactor = 1.0
+        lbText.fontSize = halfH / 16.0
+        lbText.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        lbText.position = CGPoint(x: halfW, y: halfH * 1.7 - halfH / 8.0)
+        lbText.zPosition = 1.0
+        
+        self.startUIScene.addChild(lbText)
         
         // (actual Leaderboard)
-        // leaderboard transparent box
+        let height = halfH
+        let width = halfW * 1.4
+        let leaderBox = SKShapeNode(rect: CGRect(x: halfW - width / 2.0, y: halfH - height / 2.0, width: width, height: height))
+        let boxColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.8)
+        leaderBox.fillColor = boxColor
+        leaderBox.strokeColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        leaderBox.zPosition = 1.0
+        
+        self.startUIScene.addChild(leaderBox)
+        
+        let topHeight = (halfH * 1.5) - halfH / 16.0 + 5
+        
         // leaderboard entries 1-10
+        entries = []
+        for i: Int in 0...9
+        {
+            // example of entry
+            // place
+            let place = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+            place.horizontalAlignmentMode = .right
+            place.verticalAlignmentMode = .center
+            place.text = "\(i + 1)."
+            place.colorBlendFactor = 1.0
+            place.fontSize = halfH / 16.0
+            place.fontColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+            place.position = CGPoint(x: halfW - halfW / 2.0, y: topHeight - CGFloat(i) * (halfH / 10.0))
+            place.zPosition = 2.0
+            // name
+            let name = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+            name.horizontalAlignmentMode = .right
+            name.verticalAlignmentMode = .center
+            name.text = "AAA"
+            name.colorBlendFactor = 1.0
+            name.fontSize = halfH / 16.0
+            name.fontColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+            name.position = CGPoint(x: halfW, y: topHeight - CGFloat(i) * (halfH / 10.0))
+            name.zPosition = 2.0
+            //score
+            let score = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+            score.horizontalAlignmentMode = .right
+            score.verticalAlignmentMode = .center
+            score.text = "0"
+            score.colorBlendFactor = 1.0
+            score.fontSize = halfH / 16.0
+            score.fontColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+            score.position = CGPoint(x: halfW + halfW / 1.6, y: topHeight - CGFloat(i) * (halfH / 10.0))
+            score.zPosition = 2.0
+            
+            // hiding initial entries
+            place.isHidden = true
+            name.isHidden = true
+            score.isHidden = true
+            
+            // adding to scene
+            self.startUIScene.addChild(place)
+            self.startUIScene.addChild(score)
+            self.startUIScene.addChild(name)
+            
+            //array
+            let entry: [SKLabelNode] = [place, score, name]
+            entries.append(entry)
+        }
         
         // SWIPE/TAP TO START
+        let TTS = SKLabelNode(fontNamed: "ArialRoundedMTBold")
+        TTS.horizontalAlignmentMode = .center
+        TTS.verticalAlignmentMode = .center
+        TTS.text = "SWIPE/TAP TO START"
+        TTS.colorBlendFactor = 1.0
+        TTS.fontSize = halfH / 8.0
+        TTS.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        TTS.position = CGPoint(x: halfW, y: halfH * 0.3)
+        TTS.zPosition = 1.0
+        
+        self.startUIScene.addChild(TTS)
+        
+        // tap to start functionality
+        let tapToStart = TapToStartZone(imageNamed: "transparent")
+        tapToStart.gameViewController = self
+        tapToStart.scale(to: CGSize(width: screenSize.width, height: screenSize.height))
+        tapToStart.position = CGPoint(x: halfW, y: halfH)
+        tapToStart.zPosition = 5.0
+        
+        self.startUIScene.addChild(tapToStart)
     }
     
     func startUISwitch()
@@ -169,7 +302,25 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         self.pauseGame()
         self.gameView.overlaySKScene = self.startUIScene
         self.myTextField?.removeFromSuperview()
-        //self.gameUIScene.removeAllActions()
+        self.scoreUIScene.removeAllActions()
+        self.startUIScene.run(
+            SKAction.sequence(
+                [
+                    SKAction.wait(forDuration: 1.0),
+                    SKAction.run(self.allowStarting)
+                ]
+            )
+        )
+    }
+    
+    func allowStarting()
+    {
+        self.canStart = true
+    }
+    
+    func forbidStarting()
+    {
+        self.canStart = false
     }
     
     func setupScoreUI()
@@ -251,7 +402,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         self.scoreUIScene.addChild(wrongText)
         
         // submit button adds to high score list
-        let submitButton = SKShapeNode(rect: CGRect(x: halfW - 150, y: halfH / 1.5, width: 300, height: 100), cornerRadius: 50)
+        let submitButton = submitButton(rect: CGRect(x: halfW - 150, y: halfH / 1.5, width: 300, height: 100), cornerRadius: 50)
+        submitButton.gameViewController = self
         submitButton.fillColor = UIColor.systemBlue
         submitButton.strokeColor = UIColor.systemBlue
         submitButton.zPosition = 1.0
@@ -269,8 +421,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         submitText.zPosition = 2.0
         submitText.position = CGPoint(x: halfW, y: halfH / 1.5 + 50)
         
-        self.scoreUIScene.addChild(submitText)
-        
+        submitButton.addChild(submitText)
     }
     
     func scoreUISwitch()
@@ -278,6 +429,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         self.pauseGame()
         self.gameView.overlaySKScene = self.scoreUIScene
         self.gameView.addSubview(self.myTextField!)
+        self.nameTime = 40
         self.scoreUIScene.run(SKAction.repeatForever(SKAction.sequence([SKAction.wait(forDuration: 1), SKAction.run(countDown)])))
     }
     
@@ -312,8 +464,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     func clearScore() -> Void
     {
+        self.player!.score = 0
         self.score = 0
         self.playerName = ""
+        self.myTextField!.text = ""
     }
     
     func isHighScore() -> Bool
@@ -332,9 +486,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
                 self.playerName = "AAA"
             }
             
-            self.submitScore(name: self.playerName)
+            self.scoreEntry(name: self.playerName)
             
-            print(self.highScores)
             DispatchQueue.main.async { self.startUISwitch() }
         }
     }
@@ -351,10 +504,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         // create timer, and score
         self.timeLeft.horizontalAlignmentMode = .left
         self.timeLeft.verticalAlignmentMode = .bottom
-        self.timeLeft.text = "60"
+        self.timeLeft.text = "Time: 60"
         self.timeLeft.colorBlendFactor = 1.0
-        self.timeLeft.fontSize = 80.0
-        self.timeLeft.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        self.timeLeft.fontSize = halfH / 8.0
+        self.timeLeft.fontColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
         self.timeLeft.position = CGPoint(x: halfW / 4.0, y: halfH - 90)
         
         self.gameUIScene.addChild(self.timeLeft)
@@ -363,8 +516,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         self.scoreLabel.verticalAlignmentMode = .bottom
         self.scoreLabel.text = "Score: 0"
         self.scoreLabel.colorBlendFactor = 1.0
-        self.scoreLabel.fontSize = 80.0
-        self.scoreLabel.fontColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        self.scoreLabel.fontSize = halfH / 8.0
+        self.scoreLabel.fontColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
         self.scoreLabel.position = CGPoint(x: -halfW + halfW / 8.0, y: halfH - 90)
         
         self.gameUIScene.addChild(self.scoreLabel)
@@ -402,181 +555,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         curLevel!.gameScene.rootNode.addChildNode(self.cameraNode)
     }
     
-    /*
-    func setupWater()
-    {
-        let waterModifier = """
-            uniform sampler2D texture_UV1;
-            uniform sampler2D texture_UV2;
-            uniform float speed;
-        
-            #pragma transparent
-            #pragma body
-        
-            vec2 newCoords = _surface.diffuseTexcoord * 2.0;
-        
-            vec2 newCoords1 = newCoords + u_time * speed;
-            newCoords1 -= floor(newCoords1);
-        
-            vec2 newCoords2 = (newCoords * 1.5) - u_time * speed * 0.7;
-            newCoords2 -= floor(newCoords2);
-        
-            vec4 source1 = texture2D(texture_UV1, newCoords1);
-        
-            vec4 source2 = texture2D(texture_UV2, newCoords2);
-        
-            vec2 newCoords3 = newCoords1 - vec2(source2.r) * 0.4;
-            newCoords3 -= floor(newCoords3);
-        
-            vec4 source3 = texture2D(texture_UV1, newCoords3);
-                    
-            if (source3.r < 0.9)
-                source3.r *= 0.1;
-        
-            _output.color.a = source3.r * 0.2;
-            
-            _output.color.rgb = vec3(1.0) * _output.color.a;
-        """
-        
-        waterMat.blendMode = SCNBlendMode.alpha
-        waterMat.shaderModifiers = [SCNShaderModifierEntryPoint.fragment: waterModifier]
-        waterMat.diffuse.minificationFilter = SCNFilterMode.none
-        waterMat.diffuse.magnificationFilter = SCNFilterMode.none
-        waterMat.roughness.contents = 0.0
-        
-        let seamlessNoise = SCNMaterialProperty(contents: UIImage(named: "seamlessNoiseBig.png")!)
-        let darkWater = SCNMaterialProperty(contents: UIImage(named: "darkWaterBig.png")!)
-        //let brightWater = SCNMaterialProperty(contents: UIImage(named: "brightWater.png")!)
-        
-        waterMat.setValue(darkWater, forKey: "texture_UV1")
-        
-        waterMat.setValue(seamlessNoise, forKey: "texture_UV2")
-        waterMat.setValue(NSNumber(value: 0.015), forKey: "speed")
-        
-        let waterNode = SCNScene(named:"water.dae")!.rootNode.childNode(withName: "Water", recursively: true)
-        waterNode!.geometry!.materials = [waterMat]
-        waterNode?.position = SCNVector3(1.0, 0.0, 0.0)
-        waterNode?.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
-        
-        self.gameScene.rootNode.addChildNode(waterNode!)
-        let dirtNode = SCNScene(named:"water.dae")!.rootNode.childNode(withName: "WaterDirt", recursively: true)
-        dirtNode!.position = SCNVector3(1.0, 0.0, 0.0)
-        dirtNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
-        dirtNode!.geometry!.materials[0].diffuse.contents = UIColor(red: 61.0 / 255.0, green: 41.0 / 255.0, blue: 17.0 / 255.0, alpha: 1.0)
-       
-        self.gameScene.rootNode.addChildNode(dirtNode!)
-        
-        let waterCopy = deepCopyNode(waterNode!)
-        waterCopy.position += SCNVector3(-1.0, 0.0, 0.0)
-
-        self.gameScene.rootNode.addChildNode(waterCopy)
-        
-    }
-     */
-    
-    /*
-    func setupGrass()
-    {
-        /*
-        let planeNode = SCNNode()
-        let testScene = SCNScene(named:"testWall.dae")
-        let testNode = testScene!.rootNode.childNode(withName: "Wall", recursively: true)
-        
-        planeNode.scale = SCNVector3(100.0, 20.0, 100.0)
-        planeNode.position = SCNVector3(0.0, 0.0, 0.0)
-        //planeNode.eulerAngles = SCNVector3(-Double.pi / 2.0, 2.0 * Double.pi, 0.0)
-         */
-        mat = SCNMaterial()
-        
-        // amount: 0.015-0.005
-        let globeShaderModifier = """
-            uniform mat4 modelMat;
-            uniform mat4 inverseModelMat;
-            uniform float amount;
-            uniform vec3 camPos;
-            vec4 worldPos = (modelMat * vec4(_geometry.position.xyz, 1.0));
-            vec3 diff = worldPos.xyz - camPos;
-            float height = ((pow(diff.x, 2) * -amount) + (pow(diff.z, 2) * -amount));
-            vec4 offset = vec4(0.0, height, 0.0, 1.0);
-            vec4 newPos = inverseModelMat * (worldPos + offset);
-            _geometry.position = newPos;
-            """
-        
-        let grassWaveModifier = """
-            uniform float zThresh;
-            uniform vec3 xyOffset;
-            uniform float magnitude;
-            uniform float waveHeight;
-            uniform float grassHeight;
-            uniform float speed;
-            if (_geometry.position.y > zThresh)
-            {
-               float intensity = (_geometry.position.y - zThresh) / waveHeight;
-               _geometry.position.xz += (magnitude * 0.28 * sin(u_time * speed * 3.0) + magnitude * sin(u_time * speed) + xyOffset.xz) * intensity;
-               _geometry.position.y += grassHeight * intensity;
-            }
-            """
-        
-        mat.diffuse.minificationFilter = SCNFilterMode.none
-        mat.diffuse.magnificationFilter = SCNFilterMode.none
-        mat.diffuse.contents = UIImage(named: "grass")
-        mat.lightingModel = SCNMaterial.LightingModel.constant
-        mat.blendMode = SCNBlendMode.alpha
-        mat.shaderModifiers = [SCNShaderModifierEntryPoint.geometry: grassWaveModifier]//[SCNShaderModifierEntryPoint.geometry: globeShaderModifier]
-        
-        mat.setValue(NSNumber(value: 2.0), forKey: "zThresh")
-        
-        mat.setValue(NSValue(scnVector3: SCNVector3(0.05, 0.05, 0.0)), forKey: "xyOffset")
-        
-        mat.setValue(NSNumber(value: 0.02), forKey: "magnitude")
-        
-        mat.setValue(NSNumber(value: 0.1), forKey: "waveHeight")
-        
-        mat.setValue(NSNumber(value: 0.06), forKey: "grassHeight")
-        
-        mat.setValue(NSNumber(value: 1.2), forKey: "speed")
-        
-        //planeNode.geometry = testNode?.geometry
-        //planeNode.geometry?.materials = [mat]
-        
-        grassNode = SCNScene(named: "grass.dae")!.rootNode.childNode(withName: "Grass", recursively: true)!
-        grassNode.geometry?.materials = [mat]
-        
-        /*
-        for i in 1...20
-        {
-            let copyNode = deepCopyNode(grassNode!)
-            copyNode.position.z += -Float(i) + 10.0
-            self.gameScene.rootNode.addChildNode(copyNode)
-        }
-         */
-        
-        grassNode.position = SCNVector3(3.0, 0.0, 0.0)
-        grassNode.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
-        grassNode.scale = SCNVector3(1.0, 1.0, 1.0)
-        
-        /*
-        grassNode?.runAction(
-            SCNAction.repeatForever(
-                SCNAction.sequence(
-                    [
-                        SCNAction.move(by: SCNVector3(1.0, 0.0, 1.0), duration: 1.0),
-                        SCNAction.move(by: SCNVector3(-1.0, 0.0, -1.0), duration: 1.0),
-                    ]
-                )
-            )
-        )
-         */
-        self.gameScene.rootNode.addChildNode(grassNode)
-        
-        let copyGrass = deepCopyNode(grassNode)
-        copyGrass.position += SCNVector3(5.0, 0.0, 0.0)
-        
-       self.gameScene.rootNode.addChildNode(copyGrass)
-    }
-    */
-    
-    // get revesed normals, make as skybox
+    // get reversed normals, make as skybox
     func setupSky()
     {
         self.skyNode = SCNNode()
@@ -593,6 +572,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         sphereMat.lightingModel = SCNMaterial.LightingModel.constant
         
         skyNode.geometry?.materials = [sphereMat]
+        self.curLevel!.gameScene.rootNode.addChildNode(self.skyNode)
     }
     
     override var prefersStatusBarHidden: Bool {
@@ -612,47 +592,18 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         if (!pause)
         {
             var deltaTime = time - prevTime
-            if (abs(deltaTime) > 10.0)
+            if (abs(deltaTime) > 0.3)
             {
                 deltaTime = 0.0
             }
             cameraNode.position = player!.obj!.position + self.relCamPos
-            //cameraNode.position = SCNVector3(cameraNode.position.x, cameraNode.position.y, cameraNode.position.z + 0.03 * sin(Float(time)))
             skyNode.position = cameraNode.position
-            // mat4 modelMat
-            //mat.setValue(NSValue(scnMatrix4: grassNode.transform), forKey: "modelMat")
-            // mat4 inverseModelMat
-            //mat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(grassNode.transform)), forKey: "inverseModelMat")
-            // float amount
-            //mat.setValue(NSNumber(value: 1.0), forKey: "amount")
-            // vec3 camPos
-            //mat.setValue(NSValue(scnVector3: cameraNode.position), forKey: "camPos")
-            self.timer = self.timer - deltaTime
+            self.timer -= deltaTime
             if (self.timer < 0.0)
             {
                 DispatchQueue.main.async { self.endGame() }
             }
             updateDrilling(deltaTime: deltaTime)
-            
-            /*
-             grassTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
-             waterTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
-             treeTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
-             rockTile.setFreshness(amount: Float(sin(time) + 1.0) / 2.0)
-             */
-            //timer -= Float(seconds)
-            curLevel!.spotLightUpdate(pos: player!.obj!.position, rad: 5)
-            
-            /*
-             if (timer < 0.0)
-             {
-             print("scroll")
-             let move = SCNVector3(2.0, 0.0, 0.0)
-             playerPos += move
-             curLevel!.scrollLevel(move: move)
-             timer = 0.5
-             }
-             */
             prevTime = time
         }
     }
@@ -662,6 +613,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     {
         if (self.fingerDown)
         {
+            drillCooldown = 0.0
             drillTimer -= deltaTime
         }
         else
@@ -673,9 +625,14 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         
         if (self.fingerDown && drillTimer < 0.0)
         {
-            self.player!.drill()
-            
-            self.score = self.player!.score
+            drillCooldown -= deltaTime
+            if (drillCooldown < 0.0)
+            {
+                self.player!.drill()
+                self.score = self.player!.score
+                
+                drillCooldown = 0.5
+            }
         }
     }
     
@@ -704,11 +661,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
                         if finger == nil {
                             fingers[index] = touch
                             //print("finger \(index+1): x=\(point.x) , y=\(point.y)")
-                            print("button has been pressed")
                             let playerName = self.gameViewController?.playerName
                             if (playerName!.count == 3)
                             {
-                                self.gameViewController?.submitScore(name: playerName!)
+                                self.gameViewController?.scoreEntry(name: playerName!)
                                 self.gameViewController?.startUISwitch()
                             }
                             break
@@ -850,9 +806,51 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         }
     }
     
+    
+    class TapToStartZone: SKSpriteNode
+    {
+        var gameViewController: GameViewController?
+        
+        override var isUserInteractionEnabled: Bool
+        {
+            set
+            {
+                // ignore
+            }
+            get
+            {
+                return true
+            }
+        }
+        
+        var fingers = [UITouch?](repeating: nil, count:5)
+
+        override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+            super.touchesBegan(touches, with: event)
+            if (self.gameViewController!.canStart)
+            {
+                print("start game")
+                self.gameViewController!.startGame()
+            }
+            else
+            {
+                print("failed to start game")
+            }
+        }
+    }
+    
+    func startGame()
+    {
+        // reset timer
+        self.continueGame()
+        self.gameUISwitch()
+    }
+    
     func endGame()
     {
+        self.scoreLabel.text = "Score: 0"
         gameView.scene!.isPaused = true
+        self.timer = 60.4
         self.pause = true
         
         if (self.isHighScore())
@@ -867,12 +865,18 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     func pauseGame()
     {
+        gameView.preferredFramesPerSecond = 0
+        gameView.loops = false
+        gameView.rendersContinuously = false
         gameView.scene!.isPaused = true
         self.pause = true
     }
     
     func continueGame()
     {
+        gameView.play(nil)
+        gameView.loops = true
+        gameView.rendersContinuously = true
         gameView.scene!.isPaused = false
         self.pause = false
     }

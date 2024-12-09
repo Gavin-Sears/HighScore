@@ -33,11 +33,6 @@ class MainPlayer: Entity
     // material for screen that displays things
     var screenMat: SCNMaterial
     
-    // images for screen
-    var smiley: UIImage = UIImage(named: "Smiley.png")!
-    var forward: UIImage = UIImage(named: "Forward.png")!
-    var mining: UIImage = UIImage(named: "Mining.png")!
-    
     // checking if animation is playing (costs less than checking keys)
     var isIdle: Bool = false
     var isMove: Bool = false
@@ -89,9 +84,46 @@ class MainPlayer: Entity
         drillMat.metalness.contents = 1.0
         drillMat.roughness.contents = UIImage(named: "drillRough")
         
-        // screen - save so I can swap out texture, switch to Smiley
-        self.screenMat = roboGeo.materials[3]
-        self.screenMat.emission.contents = UIImage(named: "Smiley")
+        // screen - special shader to modify texture
+        let screenTextureModifier = """
+            uniform sampler2D texture_UV1;
+            uniform sampler2D texture_UV2;
+            uniform sampler2D texture_UV3;
+            
+            uniform float type;
+                        
+            #pragma body
+            
+            vec4 color;
+            
+            if (type == 1)
+            {
+                color = texture2D(texture_UV1, _surface.diffuseTexcoord);
+            }
+            else if (type == 2)
+            {
+                color = texture2D(texture_UV2, _surface.diffuseTexcoord);
+            }
+            else
+            {
+                color = texture2D(texture_UV3, _surface.diffuseTexcoord);
+            }
+            
+            _output.color.rgba = color;
+            """
+        self.screenMat = SCNMaterial()
+        self.screenMat.shaderModifiers = [SCNShaderModifierEntryPoint.fragment: screenTextureModifier]
+        let smiley = SCNMaterialProperty(contents: UIImage(named: "Smiley")!)
+        let forward = SCNMaterialProperty(contents: UIImage(named: "Forward")!)
+        let mining = SCNMaterialProperty(contents: UIImage(named: "Mining")!)
+        
+        // setting shader variables
+        screenMat.setValue(smiley, forKey: "texture_UV1")
+        screenMat.setValue(forward, forKey: "texture_UV2")
+        screenMat.setValue(mining, forKey: "texture_UV3")
+        screenMat.setValue(NSNumber(value: 1), forKey: "type")
+        
+        roboGeo.materials[3] = self.screenMat
         
         // idleAnimPlayer
         self.idleAnimPlayer = SCNAnimationPlayer.loadAnimation(fromSceneNamed: "robotIdle.dae")
@@ -239,8 +271,6 @@ class MainPlayer: Entity
         {
             // we turn regardless of if we can move
             turn(turn: movement)
-            //print("this is movement")
-            //print(movement)
             // check to see if we have a valid move
             if (curLevel!.canMove(movement: movement))
             {
@@ -248,7 +278,6 @@ class MainPlayer: Entity
                 {
                     self.isDrilling = false
                 }
-                //print(self.obj.position)
                 moveAnim(movement: movement * 2.0)
             }
         }
@@ -273,7 +302,7 @@ class MainPlayer: Entity
                 {() -> Void in
                     self.isMoving = false
                     self.updateAnims()
-                    //self.curLevel!.spotLightUpdate(pos: self.obj.position, rad: 5)
+                    self.curLevel!.spotLightUpdate(pos: self.obj!.position, rad: 5)
                     self.curLevel!.scrollLevel(move: movement)
                     self.correctLoc()
                 })
@@ -293,7 +322,7 @@ class MainPlayer: Entity
                 self.moveAnimPlayer.play()
                 self.isMove = true
                 self.armNode.scale = SCNVector3(0.0, 0.0, 0.0)
-                self.screenMat.emission.contents = self.forward
+                screenMat.setValue(NSNumber(value: 2), forKey: "type")
             }
         }
         else if (isDrilling)
@@ -307,7 +336,7 @@ class MainPlayer: Entity
                 self.drillAnimPlayer.play()
                 self.isDrill = true
                 self.armNode.scale = SCNVector3(1.0, 1.0, 1.0)
-                screenMat.emission.contents = self.mining
+                screenMat.setValue(NSNumber(value: 3), forKey: "type")
             }
         }
         else
@@ -321,7 +350,7 @@ class MainPlayer: Entity
                 self.idleAnimPlayer.play()
                 self.isIdle = true
                 self.armNode.scale = SCNVector3(0.0, 0.0, 0.0)
-                self.screenMat.emission.contents = self.smiley
+                screenMat.setValue(NSNumber(value: 1), forKey: "type")
             }
         }
     }
@@ -389,6 +418,11 @@ class air: Tile
             self.freshness = 0.0
         }
     }
+    
+//    func updateGlobeShader(playerPos: SCNVector3)
+//    {
+//        return
+//    }
 }
 
 class grass: Tile
@@ -398,6 +432,7 @@ class grass: Tile
     var freshness: Float = 1.0
     weak var obj: SCNNode?
     var canWalk: Bool = true
+    var mat: SCNMaterial?
     
     required init()
     {
@@ -447,8 +482,18 @@ class grass: Tile
         // loading model and adding material
         let grassNode = SCNScene(named: "grass.dae")!.rootNode.childNode(withName: "Grass", recursively: true)!
         grassNode.position = SCNVector3(0.0, 0.0, 0.0)
-        grassNode.geometry?.materials = [grassMat]
         
+//        // mat4 modelMat
+//        grassMat.setValue(NSValue(scnMatrix4: grassNode.transform), forKey: "modelMat")
+//        // mat4 inverseModelMat
+//        grassMat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(grassNode.transform)), forKey: "inverseModelMat")
+//        // float amount
+//        grassMat.setValue(NSNumber(value: 1.0), forKey: "amount")
+//        // vec3 camPos
+//        grassMat.setValue(NSValue(scnVector3: SCNVector3(1.0, 3.0, 1.0)), forKey: "camPos")
+        self.mat = grassMat
+        
+        grassNode.geometry?.materials = [self.mat!]
         self.obj = grassNode
     }
     
@@ -480,6 +525,17 @@ class grass: Tile
         
         self.obj?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
     }
+    
+//    func updateGlobeShader(playerPos: SCNVector3)
+//    {
+//        if let mat = self.mat
+//        {
+//            mat.setValue(NSValue(scnVector3: playerPos), forKey: "camPos")
+//            mat.setValue(NSValue(scnMatrix4: self.obj!.transform), forKey: "modelMat")
+//            // mat4 inverseModelMat
+//            mat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(self.obj!.transform)), forKey: "inverseModelMat")
+//        }
+//    }
 }
 
 class water: Tile
@@ -489,6 +545,7 @@ class water: Tile
     var freshness: Float = 1.0
     var obj: SCNNode?
     var canWalk: Bool = false
+    var mat: SCNMaterial?
     
     required init()
     {
@@ -521,6 +578,21 @@ class water: Tile
             _output.color.a = source3.r * 0.2 + (1.0 - pow(freshness, 0.5)) * 0.4;
             _output.color.rgb = vec3(freshness * freshness * freshness) * _output.color.a;
             """
+        /*
+        // amount: 0.015-0.005
+        let globeShaderModifier = """
+            uniform mat4 modelMat;
+            uniform mat4 inverseModelMat;
+            uniform float amount;
+            uniform vec3 camPos;
+            vec4 worldPos = (modelMat * vec4(_geometry.position.xyz, 1.0));
+            vec3 diff = worldPos.xyz - camPos;
+            float height = ((pow(diff.x, 2) * -amount) + (pow(diff.z, 2) * -amount));
+            vec4 offset = vec4(0.0, height, 0.0, 1.0);
+            vec4 newPos = inverseModelMat * (worldPos + offset);
+            _geometry.position = newPos;
+            """
+         */
         
         let waterHeightModifier = """
             uniform float freshness;
@@ -551,9 +623,20 @@ class water: Tile
         let waterScene = SCNScene(named:"water.dae")
         
         let waterNode = waterScene!.rootNode.childNode(withName: "Water", recursively: true)
-        waterNode!.geometry!.materials = [waterMat]
         waterNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
         waterNode!.position = SCNVector3(0.0, 0.0, 0.0)
+        
+//        // mat4 modelMat
+//        waterMat.setValue(NSValue(scnMatrix4: waterNode!.transform), forKey: "modelMat")
+//        // mat4 inverseModelMat
+//        waterMat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(waterNode!.transform)), forKey: "inverseModelMat")
+//        // float amount
+//        waterMat.setValue(NSNumber(value: 1.0), forKey: "amount")
+//        // vec3 camPos
+//        waterMat.setValue(NSValue(scnVector3: SCNVector3(1.0, 3.0, 1.0)), forKey: "camPos")
+        self.mat = waterMat
+        
+        waterNode!.geometry!.materials = [self.mat!]
         
         // loading dirt model and adding material
         let dirtNode = waterScene!.rootNode.childNode(withName: "WaterDirt", recursively: true)
@@ -597,6 +680,14 @@ class water: Tile
             
         self.obj?.childNode(withName: "Water", recursively: true)?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
     }
+    
+//    func updateGlobeShader(playerPos: SCNVector3)
+//    {
+//        if let mat = self.mat
+//        {
+//            mat.setValue(NSValue(scnVector3: playerPos), forKey: "camPos")
+//        }
+//    }
 }
 
 class tree: Tile
@@ -608,6 +699,7 @@ class tree: Tile
     var canWalk: Bool = false
     var originalColors: UIImage?
     var baseYAngle: Float = 0.0
+    var mat: SCNMaterial?
     
     required init()
     {
@@ -629,6 +721,22 @@ class tree: Tile
                _geometry.position.z += grassHeight * freshMod * intensity;
             }
             """
+        
+        /*
+        // amount: 0.015-0.005
+        let globeShaderModifier = """
+            uniform mat4 modelMat;
+            uniform mat4 inverseModelMat;
+            uniform float amount;
+            uniform vec3 camPos;
+            vec4 worldPos = (modelMat * vec4(_geometry.position.xyz, 1.0));
+            vec3 diff = worldPos.xyz - camPos;
+            float height = ((pow(diff.x, 2) * -amount) + (pow(diff.z, 2) * -amount));
+            vec4 offset = vec4(0.0, height, 0.0, 1.0);
+            vec4 newPos = inverseModelMat * (worldPos + offset);
+            _geometry.position = newPos;
+            """
+         */
         
         let grassColorModifier = """
             uniform float freshness;
@@ -737,6 +845,14 @@ class tree: Tile
         treeFreshness(amount: self.freshness)
     }
     
+//    func updateGlobeShader(playerPos: SCNVector3)
+//    {
+//        if let mat = self.mat
+//        {
+//            mat.setValue(NSValue(scnVector3: playerPos), forKey: "camPos")
+//        }
+//    }
+    
     func addBaseAngle(amount: Float)
     {
         self.baseYAngle += amount
@@ -752,6 +868,7 @@ class rock: Tile
     weak var obj: SCNNode?
     var canWalk: Bool = false
     var baseYAngle: Float = 0.0
+    var mat: SCNMaterial?
     
     required init()
     {
@@ -761,6 +878,22 @@ class rock: Tile
         let rockNode = rockScene.rootNode.childNode(withName: "Rock", recursively: true)
         rockNode!.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
         rockNode!.position = SCNVector3(0.0, 2.0, 0.0)
+        
+        /*
+        // amount: 0.015-0.005
+        let globeShaderModifier = """
+            uniform mat4 modelMat;
+            uniform mat4 inverseModelMat;
+            uniform float amount;
+            uniform vec3 camPos;
+            vec4 worldPos = (modelMat * vec4(_geometry.position.xyz, 1.0));
+            vec3 diff = worldPos.xyz - camPos;
+            float height = ((pow(diff.x, 2) * -amount) + (pow(diff.z, 2) * -amount));
+            vec4 offset = vec4(0.0, height, 0.0, 1.0);
+            vec4 newPos = inverseModelMat * (worldPos + offset);
+            _geometry.position = newPos;
+            """
+         */
         
         // creating and setting dirt material
         let dirtMat = SCNMaterial()
@@ -792,7 +925,15 @@ class rock: Tile
     {
         let rock = self.obj?.childNode(withName: "Rock", recursively: true)
         
-        let remappedFreshness = floor((amount * amount) * 10.0) / 10.0
+        var newAmount: Float = 0.0
+        
+        if (amount > 0.0)
+        {
+            newAmount = amount
+        }
+        
+        let remappedFreshness = floor(((newAmount * newAmount) * 10.0) + 0.9) / 10.0
+        
         rock?.scale = SCNVector3(remappedFreshness, remappedFreshness, remappedFreshness)
         rock?.eulerAngles.y = remappedFreshness * .pi + baseYAngle
     }
@@ -826,6 +967,14 @@ class rock: Tile
             self.canWalk = false
         }
     }
+    
+//    func updateGlobeShader(playerPos: SCNVector3)
+//    {
+//        if let mat = self.mat
+//        {
+//            mat.setValue(NSValue(scnVector3: playerPos), forKey: "camPos")
+//        }
+//    }
     
     func addBaseAngle(amount: Float)
     {
