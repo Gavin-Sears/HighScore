@@ -483,14 +483,6 @@ class grass: Tile
         let grassNode = SCNScene(named: "grass.dae")!.rootNode.childNode(withName: "Grass", recursively: true)!
         grassNode.position = SCNVector3(0.0, 0.0, 0.0)
         
-//        // mat4 modelMat
-//        grassMat.setValue(NSValue(scnMatrix4: grassNode.transform), forKey: "modelMat")
-//        // mat4 inverseModelMat
-//        grassMat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(grassNode.transform)), forKey: "inverseModelMat")
-//        // float amount
-//        grassMat.setValue(NSNumber(value: 1.0), forKey: "amount")
-//        // vec3 camPos
-//        grassMat.setValue(NSValue(scnVector3: SCNVector3(1.0, 3.0, 1.0)), forKey: "camPos")
         self.mat = grassMat
         
         grassNode.geometry?.materials = [self.mat!]
@@ -525,17 +517,6 @@ class grass: Tile
         
         self.obj?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
     }
-    
-//    func updateGlobeShader(playerPos: SCNVector3)
-//    {
-//        if let mat = self.mat
-//        {
-//            mat.setValue(NSValue(scnVector3: playerPos), forKey: "camPos")
-//            mat.setValue(NSValue(scnMatrix4: self.obj!.transform), forKey: "modelMat")
-//            // mat4 inverseModelMat
-//            mat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(self.obj!.transform)), forKey: "inverseModelMat")
-//        }
-//    }
 }
 
 class water: Tile
@@ -578,21 +559,6 @@ class water: Tile
             _output.color.a = source3.r * 0.2 + (1.0 - pow(freshness, 0.5)) * 0.4;
             _output.color.rgb = vec3(freshness * freshness * freshness) * _output.color.a;
             """
-        /*
-        // amount: 0.015-0.005
-        let globeShaderModifier = """
-            uniform mat4 modelMat;
-            uniform mat4 inverseModelMat;
-            uniform float amount;
-            uniform vec3 camPos;
-            vec4 worldPos = (modelMat * vec4(_geometry.position.xyz, 1.0));
-            vec3 diff = worldPos.xyz - camPos;
-            float height = ((pow(diff.x, 2) * -amount) + (pow(diff.z, 2) * -amount));
-            vec4 offset = vec4(0.0, height, 0.0, 1.0);
-            vec4 newPos = inverseModelMat * (worldPos + offset);
-            _geometry.position = newPos;
-            """
-         */
         
         let waterHeightModifier = """
             uniform float freshness;
@@ -626,14 +592,6 @@ class water: Tile
         waterNode!.eulerAngles = SCNVector3(-Double.pi / 2, 0.0, 0.0)
         waterNode!.position = SCNVector3(0.0, 0.0, 0.0)
         
-//        // mat4 modelMat
-//        waterMat.setValue(NSValue(scnMatrix4: waterNode!.transform), forKey: "modelMat")
-//        // mat4 inverseModelMat
-//        waterMat.setValue(NSValue(scnMatrix4: SCNMatrix4Invert(waterNode!.transform)), forKey: "inverseModelMat")
-//        // float amount
-//        waterMat.setValue(NSNumber(value: 1.0), forKey: "amount")
-//        // vec3 camPos
-//        waterMat.setValue(NSValue(scnVector3: SCNVector3(1.0, 3.0, 1.0)), forKey: "camPos")
         self.mat = waterMat
         
         waterNode!.geometry!.materials = [self.mat!]
@@ -680,14 +638,6 @@ class water: Tile
             
         self.obj?.childNode(withName: "Water", recursively: true)?.geometry?.firstMaterial?.setValue(NSNumber(value: self.freshness), forKey: "freshness")
     }
-    
-//    func updateGlobeShader(playerPos: SCNVector3)
-//    {
-//        if let mat = self.mat
-//        {
-//            mat.setValue(NSValue(scnVector3: playerPos), forKey: "camPos")
-//        }
-//    }
 }
 
 class tree: Tile
@@ -721,22 +671,6 @@ class tree: Tile
                _geometry.position.z += grassHeight * freshMod * intensity;
             }
             """
-        
-        /*
-        // amount: 0.015-0.005
-        let globeShaderModifier = """
-            uniform mat4 modelMat;
-            uniform mat4 inverseModelMat;
-            uniform float amount;
-            uniform vec3 camPos;
-            vec4 worldPos = (modelMat * vec4(_geometry.position.xyz, 1.0));
-            vec3 diff = worldPos.xyz - camPos;
-            float height = ((pow(diff.x, 2) * -amount) + (pow(diff.z, 2) * -amount));
-            vec4 offset = vec4(0.0, height, 0.0, 1.0);
-            vec4 newPos = inverseModelMat * (worldPos + offset);
-            _geometry.position = newPos;
-            """
-         */
         
         let grassColorModifier = """
             uniform float freshness;
@@ -845,14 +779,6 @@ class tree: Tile
         treeFreshness(amount: self.freshness)
     }
     
-//    func updateGlobeShader(playerPos: SCNVector3)
-//    {
-//        if let mat = self.mat
-//        {
-//            mat.setValue(NSValue(scnVector3: playerPos), forKey: "camPos")
-//        }
-//    }
-    
     func addBaseAngle(amount: Float)
     {
         self.baseYAngle += amount
@@ -878,22 +804,6 @@ class rock: Tile
         let rockNode = rockScene.rootNode.childNode(withName: "Rock", recursively: true)
         rockNode!.eulerAngles = SCNVector3(0.0, 0.0, 0.0)
         rockNode!.position = SCNVector3(0.0, 2.0, 0.0)
-        
-        /*
-        // amount: 0.015-0.005
-        let globeShaderModifier = """
-            uniform mat4 modelMat;
-            uniform mat4 inverseModelMat;
-            uniform float amount;
-            uniform vec3 camPos;
-            vec4 worldPos = (modelMat * vec4(_geometry.position.xyz, 1.0));
-            vec3 diff = worldPos.xyz - camPos;
-            float height = ((pow(diff.x, 2) * -amount) + (pow(diff.z, 2) * -amount));
-            vec4 offset = vec4(0.0, height, 0.0, 1.0);
-            vec4 newPos = inverseModelMat * (worldPos + offset);
-            _geometry.position = newPos;
-            """
-         */
         
         // creating and setting dirt material
         let dirtMat = SCNMaterial()
@@ -968,14 +878,6 @@ class rock: Tile
         }
     }
     
-//    func updateGlobeShader(playerPos: SCNVector3)
-//    {
-//        if let mat = self.mat
-//        {
-//            mat.setValue(NSValue(scnVector3: playerPos), forKey: "camPos")
-//        }
-//    }
-    
     func addBaseAngle(amount: Float)
     {
         self.baseYAngle += amount
@@ -984,125 +886,6 @@ class rock: Tile
 }
 
 //HELPER FUNCTIONS
-
-/*
-// I would make these the same function, but because of how often these are called, I want to save performance
-// returns tile at given point and below given point
-private func doubleTileLookup(curLevel: Level, pos: SCNVector3) -> [Tile]
-{
-    let tiles = curLevel.getTiles()
-    let size = curLevel.getLevelSize()
-    let width = size[0]
-    let height = size[2]
-    
-    // Making sure we do not go off the top
-    if !(pos.z > 0)
-    {
-        // Making sure we do go off the sides
-        if !(pos.x < 0.0 || pos.x > Float(width - 1))
-        {
-            let columnLength = Float(((tiles.count / height) / width) - 1)
-            // Making sure we do not go off the bottom
-            if !(abs(pos.z) > columnLength)
-            {
-                let checkForHeight = floatCompare(f1: pos.y, f2: Float(height), thresh: 0.01)
-                switch checkForHeight
-                {
-                    case 0:
-                        // we are on top of the map
-                        // this is repeated code, but it saves performance
-                        let row = Int(round(pos.x)) * width
-                        let index = Int(-round(pos.z)) + row
-                        let flatNum = width * Int(columnLength + 1)
-                    
-                        let curIndex = index + flatNum * Int(pos.y - 1)
-                    
-                        return [tiles[curIndex], air()]
-                    case 1:
-                        print("character is above the map")
-                        return [air(), air()]
-                    case 2:
-                        // do normal stuff
-                        // this is repeated code, but it saves performance
-                        let row = Int(round(pos.x)) * width
-                        let index = Int(-round(pos.z)) + row
-                        let flatNum = width * Int(columnLength + 1)
-                    
-                        let curIndex = index + flatNum * Int(pos.y - 1)
-                        let upperIndex = index + flatNum * Int(pos.y)
-                        
-                        return [tiles[curIndex], tiles[upperIndex]]
-                    default:
-                        print("AN ERROR OCCURED")
-                }
-            }
-        }
-    }
-    return [air(), air()]
-}*/
-/*
-/// This just saves performance to have both of these methods. Checks tile on given point
-private func singleTileLookup(curLevel: Level, pos: SCNVector3) -> Tile
-{
-    let tiles = curLevel.tiles
-    let size = [20, 20, 1]
-    let width = size[0]
-    let height = size[2]
-    // Making sure we do not go off the top
-    if !(pos.z > 0)
-    {
-        // Making sure we do go off the sides
-        if !(pos.x < 0.0 || pos.x > Float(width - 1))
-        {
-            let columnLength = Float(((tiles.count / height) / width) - 1)
-            // Making sure we do not go off the bottom
-            if !(abs(pos.z) > columnLength)
-            {
-                if floatCompare(f1: pos.y, f2: Float(height), thresh: 0.01) == 1
-                {
-                    return air()
-                }
-                else
-                {
-                    let row = Int(round(pos.x)) * width
-                    let index = Int(-round(pos.z)) + row
-                    let flatNum = width * Int(columnLength + 1)
-                
-                    let curIndex = index + flatNum * Int(pos.y)
-                    
-                    return tiles[curIndex]
-                }
-            }
-        }
-    }
-    return air()
-}
- */
-
-/// Function that determines if an entity can make a given move
-///
-/// takes the position of a desired move, looks up the associated tile, then checks whether or not that tile is possible to walk on
-///
-///  - Parameters:
-///  - entity: Class deriving from interface Entity of which we are trying to move the associated obj
-///  - moveLoc: World coordinate of the position we are trying to move entity to
-///  - tiles: The array of tiles used in the level
-///
-///  - Returns:Whether or not the given entity can move to that given point
-private func canMove(moveLoc: SCNVector3, curLevel: Level) -> Bool
-{
-    /*
-    let targetTiles: [Tile] = doubleTileLookup(curLevel: curLevel, pos: moveLoc)
-    let lowerTile = targetTiles[0]
-    let upperTile = targetTiles[1]
-    
-    let lower : Bool = true
-    let upper : Bool = true
-    
-    return lower && upper
-     */
-    return true
-}
 
 /// Compares two floating point numbers with a threshold
 ///

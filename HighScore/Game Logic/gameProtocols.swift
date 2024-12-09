@@ -21,7 +21,6 @@ protocol Tile
     init(cloneOf: Tile)
     
     func updateFreshness(amount: Float)
-    //func updateGlobeShader(playerPos: SCNVector3)
 }
 
 protocol Entity

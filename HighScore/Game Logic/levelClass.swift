@@ -303,22 +303,6 @@ class Level
         }
     }
     
-    /*
-    func updateGlobeShader()
-    {
-        for i: Int in 0...tiles.count - 1
-        {
-            for j: Int in 0...tiles[i].count - 1
-            {
-                if let node = self.playerNode
-                {
-                    tiles[i][j].updateGlobeShader(playerPos: node.position)
-                }
-            }
-        }
-    }
-     */
-    
     // checks if given move will cross a block that player is allowed to move on
     func canMove(movement: SCNVector3) -> Bool
     {
