@@ -40,32 +40,34 @@ class Level
     
     public var playerNode: SCNNode?
     
-    init()
+    init(fileName: String)
     {
         self.gameScene = SCNScene()
         
         buildLights()
-        buildTiles()
+        buildTiles(fileName: fileName)
     }
     
-    func buildTiles()
+    func buildTiles(fileName: String)
     {
+        //let levelData = loadLevelData(fileName: fileName)
         for i in 0...19
         {
             var row: [Tile] = []
             
             for j in 0...19
             {
-                let tileIndex = tileIndices[(i * 20) + j]
+                //let data = levelData[(i * 20) + j]
+                let tileType = tileIndices[(i * 20) + j]
                 
-                var tile = tileArray[tileIndex]()
-                tile.originalIndex = tileIndex
+                var tile = tileArray[tileType]()
+                tile.originalIndex = tileType
                 
-                if (tileIndex == 3)
+                if (tileType == 3)
                 {
                     (tile as! tree).addBaseAngle(amount: Float(i).truncatingRemainder(dividingBy: 3.0) * .pi)
                 }
-                else if (tileIndex == 4)
+                else if (tileType == 4)
                 {
                     (tile as! rock).addBaseAngle(amount: Float(i).truncatingRemainder(dividingBy: 3.0) * .pi)
                 }
@@ -74,6 +76,7 @@ class Level
                 let posZ = i * 2 - 19
                 
                 tile.obj!.position = SCNVector3(posX, 0, posZ)
+                //tile.updateFreshness(amount: -(1.0 - data.1))
                 
                 row.append(tile)
                 self.gameScene.rootNode.addChildNode(tile.obj!)
@@ -81,96 +84,6 @@ class Level
             
             self.tiles.append(row)
         }
-    }
-    
-    func resetTiles()
-    {
-        // for each row, sort them
-        for i: Int in 0...tiles.count - 1
-        {
-            quickSortTiles(tileList: &tiles[i], low: 0, high: tiles.count - 1)
-        }
-        // then sort the rows based on the lowest element
-        quickSort2DTiles(tileList: &tiles, low: 0, high: tiles.count - 1)
-        
-        // now resetting graphics to match current array
-        
-        for i in 0...19
-        {
-            for j in 0...19
-            {
-                let tile = tiles[i][j]
-                
-                let posX = j * 2 - 19
-                let posZ = i * 2 - 19
-                
-                tile.obj?.position = SCNVector3(posX, 0, posZ)
-            }
-        }
-    }
-    
-    func quickSortTiles(tileList: inout [Tile], low: Int, high: Int)
-    {
-        if (low >= high || low < 0)
-        {
-            return
-        }
-        
-        let p = partition(tileList: &tileList, low: low, high: high)
-        
-        quickSortTiles(tileList: &tileList, low: low, high: p - 1)
-        quickSortTiles(tileList: &tileList, low: p + 1, high: high)
-    }
-    
-    func quickSort2DTiles(tileList: inout [[Tile]], low: Int, high: Int)
-    {
-        if (low >= high || low < 0)
-        {
-            return
-        }
-        
-        let p = partition2D(tileList: &tileList, low: low, high: high)
-        
-        quickSort2DTiles(tileList: &tileList, low: low, high: p - 1)
-        quickSort2DTiles(tileList: &tileList, low: p + 1, high: high)
-    }
-    
-    func partition(tileList: inout [Tile], low: Int, high: Int) -> Int
-    {
-        let pivot = tileList[high]
-        
-        var i = low
-        
-        for j: Int in low...high - 1
-        {
-            if (tileList[j].originalIndex! <= pivot.originalIndex!)
-            {
-                tileList.swapAt(i, j)
-                i += 1
-            }
-        }
-        
-        tileList.swapAt(i, high)
-        return i
-    }
-    
-    func partition2D(tileList: inout [[Tile]], low: Int, high: Int) -> Int
-    {
-        let pivot = tileList[high]
-        
-        var i = low
-        
-        for j: Int in low...high - 1
-        {
-            if (tileList[j][0].originalIndex! <= pivot[0].originalIndex!)
-            {
-                tileList.swapAt(i, j)
-                i += 1
-            }
-        }
-        
-        tileList.swapAt(i, high)
-        return i
     }
     
     func buildLights()
@@ -333,10 +246,68 @@ class Level
         }
     }
     
-    //TODO: parse csv file for freshness numbers
-    func readFreshness(text: String) -> [String]
+    // takes data from file, and turns it into level data
+    public func loadLevelData(fileName: String) -> [(Int, Float)]
     {
-        return text.components(separatedBy: ",")
+        var result: [(Int, Float)] = []
+        
+        let fileContents = readTextFile(fileName)
+        
+        let data = fileContents.components(separatedBy: "\n")
+        
+        // skip first ten lines, which are reserved for scores
+        for i: Int in 10...data.count - 1
+        {
+            let entry = data[i].components(separatedBy: ",")
+            var ID: Int = 0
+            if let IntEntry = Int(entry[0])
+            {
+                ID = IntEntry
+            }
+            
+            var fresh: Float = 0.0
+            if let FloatEntry = Float(entry[1])
+            {
+                fresh = FloatEntry
+            }
+            
+            result.append((ID, fresh))
+        }
+        
+        return result
+    }
+    
+    // format is as follows:
+    // tile: tileID, freshness level
+    //so
+    // SCNVector3
+    // int, float
+    public func encodeDataAsText() -> String
+    {
+        var contents = ""
+        
+        for i: Int in 0...tiles.count - 1
+        {
+            for j: Int in 0...tiles[i].count - 1
+            {
+                // get tile
+                let tile = tiles[i][j]
+                
+                // get itemID
+                let ID = tile.type
+                
+                // get freshness
+                let fresh = tile.freshness
+                
+                // encode into string
+                let row = "\(ID),\(fresh)\n"
+                
+                //append to string
+                contents.append(row)
+            }
+        }
+        
+        return ""
     }
     
     deinit{
@@ -366,36 +337,17 @@ public func readTextFile(_ fileName: String) -> String
 // TODO: write to text file, send email??
 public func updateTextFile(_ fileName: String, contents: String)
 {
-    /*
-    var smtpSession = MCOSMTPSession()
-    smtpSession.hostname = "smtp.gmail.com"
-    smtpSession.username = "matt@gmail.com"
-    smtpSession.password = "xxxxxxxxxxxxxxxx"
-    smtpSession.port = 465
-    smtpSession.authType = MCOAuthType.SASLPlain
-    smtpSession.connectionType = MCOConnectionType.TLS
-    smtpSession.connectionLogger = {(connectionID, type, data) in
-        if data != nil {
-            if let string = NSString(data: data, encoding: NSUTF8StringEncoding){
-                NSLog("Connectionlogger: \(string)")
-            }
-        }
+    print("nothing is happening")
+    let dir = try? FileManager.default.url(for: .documentDirectory,
+          in: .userDomainMask, appropriateFor: nil, create: true)
+    guard let fileURL = dir?.appendingPathComponent(fileName).appendingPathExtension("txt") else {
+        fatalError("Not able to create URL")
     }
-
-    var builder = MCOMessageBuilder()
-    builder.header.to = [MCOAddress(displayName: "Rool", mailbox: "itsrool@gmail.com")]
-    builder.header.from = MCOAddress(displayName: "Matt R", mailbox: "matt@gmail.com")
-    builder.header.subject = "My message"
-    builder.htmlBody = "Yo Rool, this is a test message!"
-
-    let rfc822Data = builder.data()
-    let sendOperation = smtpSession.sendOperationWithData(rfc822Data)
-    sendOperation.start { (error) -> Void in
-        if (error != nil) {
-            NSLog("Error sending email: \(error)")
-        } else {
-            NSLog("Successfully sent email!")
-        }
+    
+    let outString = contents
+    do {
+        try outString.write(to: fileURL, atomically: true, encoding: .utf8)
+    } catch {
+        assertionFailure("Failed writing to URL: \(fileURL), Error: " + error.localizedDescription)
     }
-     */
 }

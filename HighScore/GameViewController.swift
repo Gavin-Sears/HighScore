@@ -64,7 +64,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     // game UI stuff
     public var timeLeft: SKLabelNode = SKLabelNode(fontNamed: "ArialRoundedMTBold")
-    public var timer: TimeInterval = 60.4 {
+    public var timer: TimeInterval = 1.4 {
         didSet {
             if (timer > 0.0)
             {
@@ -168,7 +168,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         //gameView.allowsCameraControl = true
         gameView.showsStatistics = true
         gameView.backgroundColor = UIColor.black
-        let level = Level()
+        let level = Level(fileName: "gameData.txt")
         self.curLevel = level
         setupSky()
         
@@ -183,6 +183,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         startUISwitch()
         
         curLevel!.spotLightUpdate(pos: player!.obj!.position, rad: 5)
+        
+        saveGameData(fileName: "gameData.txt")
     }
     
     func setupStartUI()
@@ -317,6 +319,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     func startUISwitch()
     {
+        print("started UI switch")
         self.pauseGame()
         self.gameView.overlaySKScene = self.startUIScene
         self.myTextField?.removeFromSuperview()
@@ -405,6 +408,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         self.myTextField?.textAlignment = NSTextAlignment.center
         self.myTextField?.contentVerticalAlignment = .bottom
         self.myTextField!.placeholder = ""
+        self.myTextField?.autocapitalizationType = UITextAutocapitalizationType.none
+        self.myTextField?.autocapitalizationType = UITextAutocapitalizationType.none
         
         // wrong input message
         let wrongText = SKLabelNode(fontNamed: "ArialRoundedMTBold")
@@ -453,6 +458,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     
     func scoreEntry(name: String)
     {
+        print("entering score")
         submitScore(name: name)
         clearScore()
     }
@@ -485,7 +491,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         self.player!.score = 0
         self.score = 0
         self.playerName = ""
-        self.myTextField!.text = ""
+        DispatchQueue.main.async { self.myTextField!.text = "" }
     }
     
     func isHighScore() -> Bool
@@ -673,22 +679,12 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         var fingers = [UITouch?](repeating: nil, count:5)
 
         override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-                super.touchesBegan(touches, with: event)
-                for touch in touches{
-                    for (index,finger)  in self.fingers.enumerated() {
-                        if finger == nil {
-                            fingers[index] = touch
-                            //print("finger \(index+1): x=\(point.x) , y=\(point.y)")
-                            let playerName = self.gameViewController?.playerName
-                            if (playerName!.count == 3)
-                            {
-                                self.gameViewController?.scoreEntry(name: playerName!)
-                                self.gameViewController?.startUISwitch()
-                            }
-                            break
-                        }
-                    }
-                }
+            let playerName = self.gameViewController?.playerName
+            if (playerName!.count == 3)
+            {
+                self.gameViewController?.scoreEntry(name: playerName!)
+                self.gameViewController?.startUISwitch()
+            }
         }
     }
     
@@ -871,7 +867,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         backgroundMusic?.stop()
         self.scoreLabel.text = "Score: 0"
         gameView.scene!.isPaused = true
-        self.timer = 60.4
+        self.timer = 1.4
         self.pause = true
         
         if (self.isHighScore())
@@ -957,11 +953,65 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
       return clone
     }
     
+    // takes gameDataFile, and writes leaderboard contents
+    func loadLeaderBoard(fileName: String)
+    {
+        let contents = readTextFile(fileName)
+        let data = contents.components(separatedBy: "\n")
+        
+        var result: [(String, Int)] = []
+        
+        for i: Int in 0...9
+        {
+            let entry = data[i].components(separatedBy: ",")
+            
+            var score = 0
+            if let IntEntry = Int(entry[1])
+            {
+                score = IntEntry
+            }
+            
+            result.append((entry[0], score))
+        }
+        
+        highScores = result
+        return
+    }
+    
+    // takes current leaderboard, and translates to csv string
+    func encodeLeaderBoard() -> String
+    {
+        var result = ""
+        
+        for score in highScores
+        {
+            result.append("\(score.0),\(score.1)\n")
+        }
+        
+        return result
+    }
+    
+    func encodeGameData() -> String
+    {
+        var contents = encodeLeaderBoard()
+        contents.append(curLevel!.encodeDataAsText())
+        
+        return contents
+    }
+    
+    func saveGameData(fileName: String)
+    {
+        let contents = encodeGameData()
+        updateTextFile(fileName, contents: contents)
+    }
+    
     deinit {
         self.curLevel?.gameScene.rootNode.cleanup()
         print("deallocating view")
     }
 }
+
+// extensions
 
 extension SCNVector3 {
      func distance(to vector: SCNVector3) -> Float {
