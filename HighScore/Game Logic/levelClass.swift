@@ -50,6 +50,23 @@ class Level
     
     func buildTiles(fileName: String)
     {
+        print("using document data")
+        var levelData = loadLevelData(fileName:"gameData")
+        
+        // empty, so we look for "curMap"
+        if (levelData.count == 0)
+        {
+            print("using current map")
+            // "current map," for when we reload
+            levelData = decodeDataAsLevel(contents: curMap)
+            if (levelData.count == 0)
+            {
+                print("using default map")
+                // should never fail; default map
+                levelData = decodeDataAsLevel(contents: basicMap)
+            }
+        }
+        
         //let levelData = loadLevelData(fileName: fileName)
         for i in 0...19
         {
@@ -57,8 +74,8 @@ class Level
             
             for j in 0...19
             {
-                //let data = levelData[(i * 20) + j]
-                let tileType = tileIndices[(i * 20) + j]
+                let data = levelData[(i * 20) + j]
+                let tileType = data.0 //tileIndices[(i * 20) + j]
                 
                 var tile = tileArray[tileType]()
                 tile.originalIndex = tileType
@@ -76,7 +93,7 @@ class Level
                 let posZ = i * 2 - 19
                 
                 tile.obj!.position = SCNVector3(posX, 0, posZ)
-                //tile.updateFreshness(amount: -(1.0 - data.1))
+                tile.updateFreshness(amount: -(1.0 - data.1))
                 
                 row.append(tile)
                 self.gameScene.rootNode.addChildNode(tile.obj!)
@@ -249,29 +266,39 @@ class Level
     // takes data from file, and turns it into level data
     public func loadLevelData(fileName: String) -> [(Int, Float)]
     {
+        let fileContents = readTextFile(fileName)
+        return decodeDataAsLevel(contents: fileContents)
+    }
+    
+    public func decodeDataAsLevel(contents: String) -> [(Int, Float)]
+    {
         var result: [(Int, Float)] = []
         
-        let fileContents = readTextFile(fileName)
+        let data = contents.components(separatedBy: "\n")
         
-        let data = fileContents.components(separatedBy: "\n")
-        
-        // skip first ten lines, which are reserved for scores
-        for i: Int in 10...data.count - 1
+        if (data.count > 11)
         {
-            let entry = data[i].components(separatedBy: ",")
-            var ID: Int = 0
-            if let IntEntry = Int(entry[0])
+            // skip first ten lines, which are reserved for scores
+            for i: Int in 10...data.count - 1
             {
-                ID = IntEntry
+                let entry = data[i].components(separatedBy: ",")
+                if (entry.count > 1)
+                {
+                    var ID: Int = 0
+                    if let IntEntry = Int(entry[0])
+                    {
+                        ID = IntEntry
+                    }
+                    
+                    var fresh: Float = 0.0
+                    if let FloatEntry = Float(entry[1])
+                    {
+                        fresh = FloatEntry
+                    }
+                    
+                    result.append((ID, fresh))
+                }
             }
-            
-            var fresh: Float = 0.0
-            if let FloatEntry = Float(entry[1])
-            {
-                fresh = FloatEntry
-            }
-            
-            result.append((ID, fresh))
         }
         
         return result
@@ -306,8 +333,9 @@ class Level
                 contents.append(row)
             }
         }
+        contents.removeLast()
         
-        return ""
+        return contents
     }
     
     deinit{
@@ -322,22 +350,25 @@ public func readTextFile(_ fileName: String) -> String
 {
     var text = ""
     
-    if let path = Bundle.main.path(forResource: fileName, ofType: "txt") {
-        do {
-            let data = try String(contentsOfFile: path, encoding: .utf8)
-            text = data
-        } catch {
-            print(error)
-        }
-    }
+    let url = URL.documentsDirectory.appending(path: fileName + ".txt")
 
+    do {
+        text = try String(contentsOf: url)
+    } catch {
+        print(error.localizedDescription)
+    }
+    
     return text
+}
+
+func getDocumentsDirectory() -> URL {
+    let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+    return paths[0]
 }
 
 // TODO: write to text file, send email??
 public func updateTextFile(_ fileName: String, contents: String)
 {
-    print("nothing is happening")
     let dir = try? FileManager.default.url(for: .documentDirectory,
           in: .userDomainMask, appropriateFor: nil, create: true)
     guard let fileURL = dir?.appendingPathComponent(fileName).appendingPathExtension("txt") else {

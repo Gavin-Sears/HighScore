@@ -18,7 +18,7 @@
 		0545F1D92D04F46000713E02 /* robot.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1D82D04F46000713E02 /* robot.dae */; };
 		0545F1DB2D04F66900713E02 /* robotIdle.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1DA2D04F66900713E02 /* robotIdle.dae */; };
 		0545F1DD2D04F8A300713E02 /* robotDrill.dae in Resources */ = {isa = PBXBuildFile; fileRef = 0545F1DC2D04F8A300713E02 /* robotDrill.dae */; };
-		054E6B8B2D090A04006C0491 /* gameData.txt in Resources */ = {isa = PBXBuildFile; fileRef = 054E6B8A2D090A04006C0491 /* gameData.txt */; };
+		054E6B8D2D092F71006C0491 /* defaultMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 054E6B8C2D092F71006C0491 /* defaultMap.swift */; };
 		056A2B8F2D003123003DD649 /* grass.png in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B8E2D003123003DD649 /* grass.png */; };
 		056A2B912D003195003DD649 /* grass.dae in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B902D003195003DD649 /* grass.dae */; };
 		056A2B932D0031CF003DD649 /* water.dae in Resources */ = {isa = PBXBuildFile; fileRef = 056A2B922D0031CF003DD649 /* water.dae */; };
@@ -54,7 +54,7 @@
 		0545F1D82D04F46000713E02 /* robot.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; name = robot.dae; path = ../../../../../Desktop/CapstoneVideoGameModels/robot/robot.dae; sourceTree = "<group>"; };
 		0545F1DA2D04F66900713E02 /* robotIdle.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; name = robotIdle.dae; path = ../../../../../Desktop/CapstoneVideoGameModels/robot/robotIdle.dae; sourceTree = "<group>"; };
 		0545F1DC2D04F8A300713E02 /* robotDrill.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; name = robotDrill.dae; path = ../../../../../Desktop/CapstoneVideoGameModels/robot/robotDrill.dae; sourceTree = "<group>"; };
-		054E6B8A2D090A04006C0491 /* gameData.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gameData.txt; sourceTree = "<group>"; };
+		054E6B8C2D092F71006C0491 /* defaultMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = defaultMap.swift; sourceTree = "<group>"; };
 		056A2B8E2D003123003DD649 /* grass.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = grass.png; sourceTree = "<group>"; };
 		056A2B902D003195003DD649 /* grass.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; path = grass.dae; sourceTree = "<group>"; };
 		056A2B922D0031CF003DD649 /* water.dae */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml.dae; name = water.dae; path = ../../../../../Desktop/CapstoneVideoGameModels/water.dae; sourceTree = "<group>"; };
@@ -97,6 +97,7 @@
 				056A2B942D00DCC0003DD649 /* levelClass.swift */,
 				056A2B992D00DD37003DD649 /* gameClasses.swift */,
 				056A2B972D00DD26003DD649 /* gameProtocols.swift */,
+				054E6B8C2D092F71006C0491 /* defaultMap.swift */,
 			);
 			path = "Game Logic";
 			sourceTree = "<group>";
@@ -139,7 +140,6 @@
 				05CB98DB2CE815F600EF1872 /* LaunchScreen.storyboard */,
 				05CB98D92CE815F600EF1872 /* Assets.xcassets */,
 				05CB98DE2CE815F600EF1872 /* Info.plist */,
-				054E6B8A2D090A04006C0491 /* gameData.txt */,
 			);
 			path = HighScore;
 			sourceTree = "<group>";
@@ -252,7 +252,6 @@
 				05CB98DA2CE815F600EF1872 /* Assets.xcassets in Resources */,
 				05CB98DD2CE815F600EF1872 /* Base in Resources */,
 				0545F1D72D04F33600713E02 /* robotMove.dae in Resources */,
-				054E6B8B2D090A04006C0491 /* gameData.txt in Resources */,
 				056A2B932D0031CF003DD649 /* water.dae in Resources */,
 				05CB98D82CE815F500EF1872 /* Base in Resources */,
 				056A2BAF2D013C05003DD649 /* rock.dae in Resources */,
@@ -280,6 +279,7 @@
 				05CB98D32CE815F500EF1872 /* SceneDelegate.swift in Sources */,
 				056A2B982D00DD26003DD649 /* gameProtocols.swift in Sources */,
 				056A2B9A2D00DD37003DD649 /* gameClasses.swift in Sources */,
+				054E6B8D2D092F71006C0491 /* defaultMap.swift in Sources */,
 				056A2B9D2D00E3F4003DD649 /* SCNVector3Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

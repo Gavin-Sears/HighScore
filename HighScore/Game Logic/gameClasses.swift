@@ -53,6 +53,8 @@ class MainPlayer: Entity
     var isDrilling: Bool = false
     var inDrillFunction: Bool = false
     
+    let drillAnimSpeed = 5.0
+    
     init(moveSpeed: Float, curLevel: Level)
     {
         self.curLevel = curLevel
@@ -144,6 +146,7 @@ class MainPlayer: Entity
         self.drillAnimPlayer = SCNAnimationPlayer.loadAnimation(fromSceneNamed: "robotDrill.dae")
         self.drillAnimPlayer.animation.isRemovedOnCompletion = false
         self.drillAnimPlayer.paused = true
+        self.drillAnimPlayer.speed = self.drillAnimSpeed
         //self.drillAnimPlayer.play()
         
         self.obj!.addAnimationPlayer(self.idleAnimPlayer, forKey: "Idle")
@@ -247,7 +250,7 @@ class MainPlayer: Entity
             }
             
             // should be duration of drill animation
-            DispatchQueue.main.asyncAfter(deadline: .now() + drillAnimPlayer.animation.duration)
+            DispatchQueue.main.asyncAfter(deadline: .now() + drillAnimPlayer.animation.duration / self.drillAnimSpeed)
             {
                 if (self.inDrillFunction)
                 {
