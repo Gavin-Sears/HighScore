@@ -792,7 +792,7 @@ class tree: Tile
 class rock: Tile
 {
     var originalIndex: Int?
-    var type: Int = 3
+    var type: Int = 4
     var freshness: Float = 1.0
     weak var obj: SCNNode?
     var canWalk: Bool = false

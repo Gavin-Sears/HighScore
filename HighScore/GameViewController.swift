@@ -184,6 +184,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         
         curLevel!.spotLightUpdate(pos: player!.obj!.position, rad: 5)
         
+        // to back up curlevel added
         saveGameData(fileName: "gameData")
     }
     
@@ -323,6 +324,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     func startUISwitch()
     {
         print("started UI switch")
+        // in case we do not get high score
+        self.clearScore()
         self.pauseGame()
         self.gameView.overlaySKScene = self.startUIScene
         self.myTextField?.removeFromSuperview()
@@ -487,6 +490,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
             }
         }
         
+        // updating scores
         saveGameData(fileName: "gameData")
     }
     
@@ -885,6 +889,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
         {
             self.startUISwitch()
         }
+        
+        // for people who do not get a high score
+        saveGameData(fileName: "gameData")
     }
     
     func pauseGame()
