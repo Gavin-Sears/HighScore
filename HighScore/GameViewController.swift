@@ -58,9 +58,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     public var swipeLength: CGFloat = 0.1
     
     public var fingerDown: Bool = false
-    public var drillTimer: TimeInterval = 0.2
+    public var drillTimer: TimeInterval = 0.19
     public var drillCooldown: TimeInterval = 0.1
-    public var drillTimerMax: TimeInterval = 0.2
+    public var drillTimerMax: TimeInterval = 0.19
     
     // game UI stuff
     public var timeLeft: SKLabelNode = SKLabelNode(fontNamed: "ArialRoundedMTBold")
@@ -135,7 +135,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, UITextFiel
     /// Setting up gameview, and creating game scene
     func setupScene()
     {
-        let path = Bundle.main.path(forResource: "HighScore.mp3", ofType: nil)
+        let path = Bundle.main.path(forResource: "High_Score.mp3", ofType: nil)
         
         var url = URL(fileURLWithPath: "")
         if let p = path
